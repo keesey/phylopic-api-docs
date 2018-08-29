@@ -602,6 +602,51 @@ components:
             type: string
             example: 123e4567-e89b-12d3-a456-426655440000
 paths:
+  /:
+    get:
+      summary: API information and links to resources.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+      responses:
+        '200':
+          description: HAL JSON resource description for the API.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                type: object
+                required:
+                  _links
+                  title
+                  version
+                properties:
+                  _links:
+                    type: object
+                    required:
+                      contact
+                      documentation
+                      resources
+                      self
+                    properties:
+                      contact:
+                        $ref: '#/components/schemas/TitledLink'
+                      documentation:
+                        $ref: '#/components/schemas/Link'
+                      resources:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TitledLink'
+                      self:
+                        $ref: '#/components/schemas/Link'
+                  title:
+                    type: string
+                    example: PhyloPic API
+                  version:
+                    pattern: '^\d+\.\d+\.\d+(-(alpha|beta|rc)(\.\d+)?)?'
+                    type: string
+                    example: 2.0.0-alpha
   /accounts/{uuid}:
     get:
       summary: Returns a specific user account.
