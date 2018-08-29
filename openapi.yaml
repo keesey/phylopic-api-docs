@@ -509,6 +509,7 @@ components:
                 - child_set
                 - descendant_image_set
                 - external
+                - icon_image
                 - parent
                 - self
                 - self_image_set
@@ -535,6 +536,10 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/TitledLink'
+                icon_image:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
                 parent:
                   $ref: '#/components/schemas/Link'
                   nullable: true
@@ -598,7 +603,7 @@ components:
         _links:
           type: object
           required:
-            - _links
+            - self
           properties:
             self:
               $ref: '#/components/schemas/Link'
