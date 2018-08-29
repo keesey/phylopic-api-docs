@@ -1,0 +1,534 @@
+openapi: 3.0.1
+info:
+  title: PhyloPic API
+  version: 2.0.0
+components:
+  headers:
+    Accept-Ranges:
+      description: The units acceptable for range requests. Always 'items'.
+      example: items
+    Content-Range:
+      description: |
+        The range of embedded items, in the format 'items {start}-{end}/{total}'.
+      example: items 0-9/88
+    Content-Type:
+      description: The MIME type for the payload, including API version. Must be `application/vnd.phylopic.v1+json`.
+      example: application/vnd.phylopic.v1+json
+    Location:
+      description: The URL for the resource.
+  parameters:
+    Accept:
+      name: Accept
+      in: header
+      required: true
+      description: The MIME type for the response, including API version. Must include `application/vnd.phylopic.v1+json`.
+      schema:
+        format: mimetype
+        type: string
+      example: application/vnd.phylopic.v1+json
+    Authentication:
+      name: Authentication
+      in: header
+      required: true
+      description: Authentication for using this API.
+      schema:
+        type: string
+    Content-Type:
+      name: Content-Type
+      in: header
+      required: true
+      description: The MIME type for the payload, including API version. Must be `application/vnd.phylopic.v1+json`.
+      schema:
+        format: mimetype
+        type: string
+      example: application/vnd.phylopic.v1+json
+    Range:
+      name: Range
+      in: header
+      required: true
+      description: A range of the items to read, inclusive.
+      schema:
+        pattern: '^items=\d+-\d+$'
+        type: string
+      example: items=0-9
+    embed-Image:
+      name: embed
+      in: query
+      description: |
+        A space-separated list of related entities to embed. May include:
+        - `general_name`
+        - `specific_name`
+        - `submitter`
+
+        If omitted, no entities will be embedded.
+      schema:
+        pattern: '^((general_name|specific_name|submitter) )*(general_name|specific_name|submitter)$'
+        type: string
+  responses:
+    '202':
+      description: Accepted
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v1+json:
+          schema:
+            type: object
+            required:
+              - _links
+              - uuid
+            properties:
+              _links:
+                type: object
+                required:
+                  - self
+                properties:
+                  self:
+                    $ref: '#/components/schemas/Link'
+              uuid:
+                format: uuid
+                type: string
+    '400':
+      description: Bad Request
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v1+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    '401':
+      description: Unauthenticated
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v1+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    '403':
+      description: Forbidden
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v1+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    '404':
+      description: Not Found
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v1+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    '410':
+      description: Gone
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v1+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    '416':
+      description: Requested Range Not Satisfiable
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v1+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+  schemas:
+    Entity:
+      type: object
+      required:
+        - _links
+        - created
+        - modified
+        - uuid
+      properties:
+        _links:
+          type: object
+          required:
+            - self
+          properties:
+        created:
+          format: date-time
+          readOnly: true
+          type: string
+        modified:
+          format: date-time
+          readOnly: true
+          type: string
+        uuid:
+          format: uuid
+          readOnly: true
+          type: string
+    Account:
+      required:
+        - _links
+        - email
+        - family_name
+        - given_name
+        - role
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            _links:
+              type: object
+              required:
+                - self
+                - submitted_image_set
+                - submitted_name_set
+              properties:
+                submitted_image_set:
+                  $ref: '#/components/schemas/Link'
+                  readOnly: true
+                submitted_name_set:
+                  $ref: '#/components/schemas/Link'
+                  readOnly: true
+            email:
+              format: email
+              readOnly: true
+              type: string
+            family_name:
+              readOnly: true
+              type: string
+            given_name:
+              readOnly: true
+              type: string
+            role:
+              pattern: '^(member|admin)$'
+              readOnly: true
+              type: string
+    AccountResource:
+      required:
+        - _embedded
+      allOf:
+        - type: object
+          properties:
+            _embedded:
+              type: object
+              properties:
+        - $ref: '#/components/schemas/Account'
+    Errors:
+      type: array
+      items:
+        type: object
+        required:
+          - code
+          - developerMessage
+          - userMessage
+        properties:
+          code:
+            format: int64
+            type: integer
+          developerMessage:
+            type: string
+          documentation:
+            format: url
+            type: string
+          field:
+            type: string
+          userMessage:
+            type: string
+    Image:
+      required:
+        - _links
+        - attribution
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            attribution:
+              type: string
+            _links:
+              type: object
+              required:
+                - general_name
+                - http://ogp.me/ns#image
+                - icon_file
+                - license
+                - name_set
+                - raster_files
+                - self
+                - specific_name
+                - submitter
+                - thumbnail_file
+                - twitter:image
+                - vector_file
+              properties:
+                general_name:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                'http://ogp.me/ns#image':
+                  $ref: '#/components/schemas/MediaLink'
+                  readOnly: true
+                icon_file:
+                  $ref: '#/components/schemas/MediaLink'
+                  readOnly: true
+                name_set:
+                  $ref: '#/components/schemas/Link'
+                  readOnly: true
+                raster_files:
+                  type: array
+                  readOnly: true
+                  items:
+                    $ref: '#/components/schemas/MediaLink'
+                submitter:
+                  $ref: '#/components/schemas/Link'
+                  readOnly: true
+                thumbnail_file:
+                  $ref: '#/components/schemas/MediaLink'
+                  readOnly: true
+                'twitter:image':
+                  $ref: '#/components/schemas/MediaLink'
+                  readOnly: true
+                vector_file:
+                  $ref: '#/components/schemas/MediaLink'
+                  readOnly: true
+                  nullable: true
+                license:
+                  $ref: '#/components/schemas/Link'
+                specific_name:
+                  $ref: '#/components/schemas/Link'
+    ImageResource:
+      required:
+        - _embedded
+      allOf:
+        - type: object
+          properties:
+            _embedded:
+              type: object
+              properties:
+                general_name:
+                  $ref: '#/components/schemas/Name'
+                  nullable: true
+                specific_name:
+                  $ref: '#/components/schemas/Name'
+                submitter:
+                  $ref: '#/components/schemas/Account'
+        - $ref: '#/components/schemas/Image'
+    Link:
+      type: object
+      properties:
+        href:
+          format: url
+          type: string
+    MediaLink:
+      allOf:
+        - $ref: '#/components/schemas/Link'
+        - type: object
+          properties:
+            sizes:
+              pattern: '^\d+x\d+$'
+              type: string
+            type:
+              format: mimetype
+              type: string
+    Name:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          required:
+            - _links
+            - parts
+            - root
+            - text
+          properties:
+            _links:
+              type: object
+              required:
+                - external
+                - hyperonym_image_set
+                - hyponym_image_set
+                - immediate_hyperonym
+                - self
+                - self_image_set
+                - submitter
+                - synonym_set
+              properties:
+                external:
+                  type: array
+                  readOnly: true
+                  items:
+                    $ref: '#/components/schemas/Link'
+                hyperonym_image_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
+                hyponym_image_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
+                immediate_hyperonym:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                immediate_hyponym_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
+                self_image_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
+                submitter:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
+                synonym_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
+            parts:
+              type: array
+              items:
+                type: object
+                required:
+                  - class
+                  - text
+                properties:
+                  class:
+                    format: '^(citation|comment|operator|rank|scientific|vernacular)$'
+                    type: string
+                  text:
+                    format: '^\S+( \S+)*$'
+                    type: string
+            root:
+              type: boolean
+            text:
+              type: string
+              readOnly: true
+    NameResource:
+      required:
+        - _embedded
+      allOf:
+        - type: object
+          properties:
+            _embedded:
+              type: object
+              properties:
+                immediate_hyperonym:
+                  $ref: '#/components/schemas/Name'
+                  nullable: true
+                submitter:
+                  $ref: '#/components/schemas/Account'
+                  nullable: true
+        - $ref: '#/components/schemas/Name'
+paths:
+  /images:
+    get:
+      summary: Returns a list of images.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/embed-Image'
+        - name: sort
+          in: query
+          required: false
+          description: |
+            A space-separated list of fields to sort by. May include:
+            - `created`
+            - `modified`
+
+            Either of these be prepended by `-` to indicate descending order. The default value is `-modified`.
+          schema:
+            pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
+            type: string
+      responses:
+        '206':
+          description: HAL JSON list of embedded image records.
+          headers:
+            Accept-Ranges:
+              $ref: '#/components/headers/Accept-Ranges'
+            Content-Range:
+              $ref: '#/components/headers/Content-Range'
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v1+json:
+              schema: 
+                type: object
+                required:
+                  - _links
+                properties:
+                  _embedded:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ImageResource'
+                  _links:
+                    type: object
+                    required:
+                      - self
+                    properties:
+                      self:
+                        $ref: '#/components/schemas/Link'
+        '400':
+          $ref: '#/components/responses/400'
+        '416':
+          $ref: '#/components/responses/416'
+    post:
+      summary: Submits an image file for processing and addition.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                attribution:
+                  type: string
+                file:
+                  format: binary
+                  type: string
+                filename:
+                  type: string
+                license:
+                  format: url
+                  type: string
+      responses:
+        '202':
+          $ref: '#/components/responses/202'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+  /images/{uuid}:
+    get:
+      summary: Returns a specific image.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/embed-Image'
+        - name: uuid
+          in: path
+          required: true
+          description: The UUID of the image.
+          schema:
+            format: uuid
+            type: string
+      responses:
+        '200':
+          description: HAL JSON image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v1+json:
+              schema: 
+                $ref: '#/components/schemas/ImageResource'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
