@@ -597,9 +597,15 @@ components:
     NodeReference:
       description: A reference to a phylogenetic node.
       required:
+        - _embedded
         - _links
         - names
       properties:
+        _embedded:
+          type: object
+          properties:
+            primary_image:
+              $ref: '#/components/schemas/Image'
         _links:
           type: object
           required:
