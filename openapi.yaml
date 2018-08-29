@@ -504,6 +504,7 @@ components:
             _links:
               type: object
               required:
+                - ancestors
                 - ancestor_image_set
                 - child_set
                 - descendant_image_set
@@ -513,6 +514,11 @@ components:
                 - self_image_set
                 - submitter
               properties:
+                ancestors:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Link'
+                    readOnly: true
                 ancestor_image_set:
                   $ref: '#/components/schemas/Link'
                   nullable: true
