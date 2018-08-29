@@ -549,23 +549,26 @@ components:
             names:
               type: array
               items:
-                type: array
-                items:
-                  type: object
-                  required:
-                    - class
-                    - text
-                  properties:
-                    class:
-                      format: '^(citation|comment|operator|rank|scientific|vernacular)$'
-                      type: string
-                      example: scientific
-                    text:
-                      format: '^\S+( \S+)*$'
-                      type: string
-                      example: Homo sapiens
+                $ref: '#/components/schemas/NodeName'
             root:
               type: boolean
+    NodeName:
+      description: A taxonomic name, associated with a phylogenetic node.
+      type: array
+      items:
+        type: object
+        required:
+          - class
+          - text
+        properties:
+          class:
+            format: '^(citation|comment|operator|rank|scientific|vernacular)$'
+            type: string
+            example: scientific
+          text:
+            format: '^\S+( \S+)*$'
+            type: string
+            example: Homo sapiens
     NodeResource:
       description: A resource for a phylogenetic node.
       required:
@@ -586,6 +589,23 @@ components:
                   $ref: '#/components/schemas/Account'
                   nullable: true
         - $ref: '#/components/schemas/Node'
+    NodeReference:
+      description: A reference to a phylogenetic node.
+      required:
+        - _links
+        - names
+      properties:
+        _links:
+          type: object
+          required:
+            - _links
+          properties:
+            self:
+              $ref: '#/components/schemas/Link'
+        names:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeName'
     TitledLink:
       description: A link with a title, usually for an external resource.
       allOf:
@@ -973,12 +993,6 @@ paths:
           schema:
             format: date-time
             type: string
-        - name: search
-          in: query
-          required: false
-          description: Limits entries to nodes with the search text in one of their names.
-          schema:
-            type: string
         - name: sort
           in: query
           required: false
@@ -1022,6 +1036,81 @@ paths:
                     properties:
                       self:
                         $ref: '#/components/schemas/Link'
+        '400':
+          $ref: '#/components/responses/400'
+        '416':
+          $ref: '#/components/responses/416'
+  /nodes/resolve/{uri}:
+    get:
+      summary: Resolves an external URI to the closest phylogenetic node.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - name: uri
+          in: path
+          required: true
+          description: The URI of the external resource.
+          schema:
+            format: uri
+            type: string
+          example: http://eol.org/328046
+      responses:
+        '307':
+          description: A corresponding or ancestral node was found.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+  /nodes/search:
+    get:
+      summary: Returns an embedded list of references to nodes whose names match a search string.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+        - name: query
+          in: query
+          required: true
+          description: The text to search for. Must be at least two characters, trimmed of whitespace.
+          schema:
+            type: string
+            example: Homo sapiens
+      responses:
+        '206':
+          description: HAL JSON list of embedded partial node records or node references.
+          headers:
+            Accept-Ranges:
+              $ref: '#/components/headers/Accept-Ranges'
+            Content-Range:
+              $ref: '#/components/headers/Content-Range'
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                type: object
+                required:
+                  - _embedded
+                  - _links
+                  - query
+                properties:
+                  _embedded:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/NodeReference'
+                  _links:
+                    type: object
+                    required:
+                      - self
+                    properties:
+                      self:
+                        $ref: '#/components/schemas/Link'
+                  query:
+                    type: string
         '400':
           $ref: '#/components/responses/400'
         '416':
