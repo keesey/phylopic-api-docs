@@ -89,7 +89,7 @@ components:
         type: string
   responses:
     '202':
-      description: The requested has been accepted but is still being processed.
+      description: The request has been accepted but is still being processed.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
@@ -111,11 +111,48 @@ components:
               uuid:
                 format: uuid
                 type: string
-    '303':
-      description: The submission was already made.
+    '302':
+      description: The requested resource has been found.
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            type: object
+            required:
+              - _links
+              - uuid
+            properties:
+              _links:
+                type: object
+                required:
+                  - self
+                properties:
+                  self:
+                    $ref: '#/components/schemas/Link'
+              uuid:
+                format: uuid
+                type: string
+    '307':
+      description: The resource is available at another location, temporarily.
       headers:
         Location:
           $ref: '#/components/headers/Location'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            type: object
+            required:
+              - _links
+            properties:
+              _links:
+                type: object
+                required:
+                  - equivalent
+                properties:
+                  equivalent:
+                    $ref: '#/components/schemas/Link'
     '400':
       description: There is an error in the request.
       headers:
@@ -170,6 +207,66 @@ components:
         application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
+    'list-Image':
+      description: HAL JSON list of embedded image records.
+      headers:
+        Accept-Ranges:
+          $ref: '#/components/headers/Accept-Ranges'
+        Content-Range:
+          $ref: '#/components/headers/Content-Range'
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            type: object
+            required:
+              - _links
+            properties:
+              _embedded:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ImageResource'
+              _links:
+                type: object
+                required:
+                  - self
+                properties:
+                  self:
+                    $ref: '#/components/schemas/Link'
+    'list-Node':
+      description: HAL JSON list of embedded node records.
+      headers:
+        Accept-Ranges:
+          $ref: '#/components/headers/Accept-Ranges'
+        Content-Range:
+          $ref: '#/components/headers/Content-Range'
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            type: object
+            required:
+              - _links
+            properties:
+              _embedded:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NodeResource'
+              _links:
+                type: object
+                required:
+                  - self
+                properties:
+                  self:
+                    $ref: '#/components/schemas/Link'
   schemas:
     Account:
       required:
@@ -202,13 +299,16 @@ components:
             family_name:
               readOnly: true
               type: string
+              example: 'Linnaeus'
             given_name:
               readOnly: true
               type: string
+              example: 'Carolus'
             role:
               pattern: '^(member|admin)$'
               readOnly: true
               type: string
+              example: 'member'
     AccountResource:
       required:
         - _embedded
@@ -244,6 +344,7 @@ components:
           format: uuid
           readOnly: true
           type: string
+          example: '123e4567-e89b-12d3-a456-426655440000'
     Errors:
       type: array
       items:
@@ -256,15 +357,20 @@ components:
           code:
             format: int64
             type: integer
+            example: 422
           developerMessage:
             type: string
+            example: 'Failure at line 100 of file script.scr.'
           documentation:
             format: url
             type: string
+            example: 'http://domain/path/help.html'
           field:
             type: string
+            example: 'attribution'
           userMessage:
             type: string
+            example: 'This is an error message legible to users.'
     Image:
       required:
         - _links
@@ -275,6 +381,7 @@ components:
           properties:
             attribution:
               type: string
+              example: 'Charles Knight'
             _links:
               type: object
               required:
@@ -348,17 +455,22 @@ components:
         href:
           format: url
           type: string
+          example: /path/123e4567-e89b-12d3-a456-426655440000
     MediaLink:
       allOf:
         - $ref: '#/components/schemas/Link'
         - type: object
           properties:
+            href:
+              example: '/path/123e4567-e89b-12d3-a456-426655440000.img'
             sizes:
               pattern: '^\d+x\d+$'
               type: string
+              example: 32x32
             type:
               format: mimetype
               type: string
+              example: 'image/img'
     Node:
       allOf:
         - $ref: '#/components/schemas/Entity'
@@ -394,7 +506,6 @@ components:
                   readOnly: true
                 external:
                   type: array
-                  readOnly: true
                   items:
                     $ref: '#/components/schemas/TitledLink'
                 parent:
@@ -451,10 +562,92 @@ components:
           properties:
             title:
               type: string
+              example: 'External Resource Name'
 paths:
+  /accounts/{uuid}:
+    get:
+      summary: Returns a specific user account.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
+      responses:
+        '200':
+          description: HAL JSON user account record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema: 
+                $ref: '#/components/schemas/AccountResource'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
   /images:
     get:
-      summary: Returns a list of images.
+      summary: Returns the location of the current set of all images.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+      responses:
+        '307':
+          $ref: '#/components/responses/307'
+    post:
+      summary: Submits an image file for processing and addition.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                attribution:
+                  type: string
+                  example: 'Charles Knight'
+                file:
+                  format: binary
+                  type: string
+                filename:
+                  type: string
+                license:
+                  format: url
+                  type: string
+                  example: 'https://creativecommons.org/publicdomain/zero/1.0/'
+      responses:
+        '202':
+          $ref: '#/components/responses/202'
+        '303':
+          description: The submission was already made.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+  /images/sets:
+    post:
+      summary: Creates or retrieves a set of images.
+      requestBody:
+        required: true
+        content:
+          application/vnd.phylopic.v2+json:
+            schema:
+              type: array
+              items:
+                format: uuid
+                type: string
+                example: 123e4567-e89b-12d3-a456-426655440000
+      responses:
+        '302':
+          $ref: '#/components/responses/302'
+        '400':
+          $ref: '#/components/responses/400'
+  /images/sets/{uuid}:
+    get:
+      summary: Returns a specific set of images.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Range'
@@ -484,7 +677,7 @@ paths:
             - `nc` (Noncommercial)
             - `sa` (Standalone)
 
-            Any of these be prepended by `-` to indicate that only images under licenses *without* that component should be returned.
+            Any of these may be prepended by `-` to indicate that only images under licenses **without** that component should be returned.
 
             Examples:
             - `by`: only include images with licenses that require attribution.
@@ -515,75 +708,17 @@ paths:
             - `created`
             - `modified`
 
-            Either of these be prepended by `-` to indicate descending order. The default value is `-modified`.
+            Either of these may be prepended by `-` to indicate descending order. The default value is `-modified`.
           schema:
             pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
             type: string
       responses:
         '206':
-          description: HAL JSON list of embedded image records.
-          headers:
-            Accept-Ranges:
-              $ref: '#/components/headers/Accept-Ranges'
-            Content-Range:
-              $ref: '#/components/headers/Content-Range'
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema: 
-                type: object
-                required:
-                  - _links
-                properties:
-                  _embedded:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ImageResource'
-                  _links:
-                    type: object
-                    required:
-                      - self
-                    properties:
-                      self:
-                        $ref: '#/components/schemas/Link'
+          $ref: '#/components/responses/list-Image'
         '400':
           $ref: '#/components/responses/400'
         '416':
           $ref: '#/components/responses/416'
-    post:
-      summary: Submits an image file for processing and addition.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Authentication'
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              properties:
-                attribution:
-                  type: string
-                file:
-                  format: binary
-                  type: string
-                filename:
-                  type: string
-                license:
-                  format: url
-                  type: string
-      responses:
-        '202':
-          $ref: '#/components/responses/202'
-        '303':
-          $ref: '#/components/responses/303'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
   /images/{uuid}:
     get:
       summary: Returns a specific image.
@@ -709,6 +844,51 @@ paths:
                     properties:
                       self:
                         $ref: '#/components/schemas/Link'
+        '400':
+          $ref: '#/components/responses/400'
+        '416':
+          $ref: '#/components/responses/416'
+  /nodes/sets:
+    post:
+      summary: Creates or retrieves a set of nodes.
+      requestBody:
+        required: true
+        content:
+          application/vnd.phylopic.v2+json:
+            schema:
+              type: array
+              items:
+                format: uuid
+                type: string
+                example: 123e4567-e89b-12d3-a456-426655440000
+      responses:
+        '302':
+          $ref: '#/components/responses/302'
+        '400':
+          $ref: '#/components/responses/400'
+  /nodes/sets/{uuid}:
+    get:
+      summary: Returns a specific set of nodes.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/embed-Node'
+        - name: sort
+          in: query
+          required: false
+          description: |
+            A space-separated list of fields to sort by. May include:
+            - `created`
+            - `modified`
+            - `names`
+
+            Any of these may be prepended by `-` to indicate descending order. The default value is `names`.
+          schema:
+            pattern: '^(\-?(created|modified|names) )*(\-?(created|modified|names))$'
+            type: string
+      responses:
+        '206':
+          $ref: '#/components/responses/list-Node'
         '400':
           $ref: '#/components/responses/400'
         '416':
