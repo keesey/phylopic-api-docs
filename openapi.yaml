@@ -7,15 +7,27 @@ components:
     Accept-Ranges:
       description: The units acceptable for range requests. Always 'items'.
       example: items
+      schema:
+        pattern: '^items$'
+        type: string
     Content-Range:
       description: |
         The range of embedded items, in the format 'items {start}-{end}/{total}'.
       example: items 0-9/88
+      schema:
+        pattern: '^items \d+-\d+/\d+$'
+        type: string
     Content-Type:
-      description: The MIME type for the payload, including API version. Must be `application/vnd.phylopic.v2+json`.
+      description: The MIME type for the payload, including API version. Always `application/vnd.phylopic.v2+json`.
       example: application/vnd.phylopic.v2+json
+      schema:
+        format: mimetype
+        type: string
     Location:
       description: The URL for the resource.
+      schema:
+        format: url
+        type: string
   parameters:
     Accept:
       name: Accept
@@ -111,11 +123,15 @@ components:
               uuid:
                 format: uuid
                 type: string
+    '204':
+      description: The request completed successfuly. No further information is provided.
     '302':
       description: The requested resource has been found.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
+        Location:
+          $ref: '#/components/headers/Location'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -135,7 +151,7 @@ components:
                 format: uuid
                 type: string
     '307':
-      description: The resource is available at another location, temporarily.
+      description: The requested resource is available at another location, temporarily.
       headers:
         Location:
           $ref: '#/components/headers/Location'
@@ -269,6 +285,7 @@ components:
                     $ref: '#/components/schemas/Link'
   schemas:
     Account:
+      description: A user's account information.
       required:
         - _links
         - email
@@ -310,16 +327,11 @@ components:
               type: string
               example: 'member'
     AccountResource:
-      required:
-        - _embedded
       allOf:
-        - type: object
-          properties:
-            _embedded:
-              type: object
-              properties:
         - $ref: '#/components/schemas/Account'
+        - description: Resource for a user's account information. Currently no different from `Account`.
     Entity:
+      description: Common properties for all entities.
       type: object
       required:
         - _links
@@ -332,6 +344,9 @@ components:
           required:
             - self
           properties:
+            self:
+              $ref: '#/components/schemas/Link'
+              readOnly: true
         created:
           format: date-time
           readOnly: true
@@ -346,6 +361,7 @@ components:
           type: string
           example: '123e4567-e89b-12d3-a456-426655440000'
     Errors:
+      description: List of errors.
       type: array
       items:
         type: object
@@ -357,7 +373,7 @@ components:
           code:
             format: int64
             type: integer
-            example: 422
+            example: 99
           developerMessage:
             type: string
             example: 'Failure at line 100 of file script.scr.'
@@ -372,6 +388,7 @@ components:
             type: string
             example: 'This is an error message legible to users.'
     Image:
+      description: A submitted image.
       required:
         - _links
         - attribution
@@ -433,6 +450,7 @@ components:
                   readOnly: true
                   nullable: true
     ImageResource:
+      description: Resource for a submitted image.
       required:
         - _embedded
       allOf:
@@ -450,6 +468,7 @@ components:
                   $ref: '#/components/schemas/Account'
         - $ref: '#/components/schemas/Image'
     Link:
+      description: A basic link.
       type: object
       properties:
         href:
@@ -457,6 +476,7 @@ components:
           type: string
           example: /path/123e4567-e89b-12d3-a456-426655440000
     MediaLink:
+      description: A link to an image file.
       allOf:
         - $ref: '#/components/schemas/Link'
         - type: object
@@ -472,6 +492,7 @@ components:
               type: string
               example: 'image/img'
     Node:
+      description: A phylogenetic node, corresponding to a taxonomic unit.
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -540,8 +561,12 @@ components:
             root:
               type: boolean
     NodeResource:
+      description: A resource for a phylogenetic node.
       required:
         - _embedded
+        - _links
+        - names
+        - root
       allOf:
         - type: object
           properties:
@@ -556,13 +581,26 @@ components:
                   nullable: true
         - $ref: '#/components/schemas/Node'
     TitledLink:
+      description: A link with a title, usually for an external resource.
       allOf:
         - $ref: '#/components/schemas/Link'
         - type: object
           properties:
             title:
               type: string
-              example: 'External Resource Name'
+              example: 'Resource Name'
+    UUIDList:
+      description: An object storing a list of UUIDs.
+      type: object
+      required:
+        - uuids
+      properties:
+        uuids:
+          type: array
+          items:
+            format: uuid
+            type: string
+            example: 123e4567-e89b-12d3-a456-426655440000
 paths:
   /accounts/{uuid}:
     get:
@@ -578,7 +616,7 @@ paths:
               $ref: '#/components/headers/Content-Type'
           content:
             application/vnd.phylopic.v2+json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/AccountResource'
         '404':
           $ref: '#/components/responses/404'
@@ -602,14 +640,13 @@ paths:
         content:
           multipart/form-data:
             schema:
+              type: object
               properties:
                 attribution:
                   type: string
                   example: 'Charles Knight'
                 file:
                   format: binary
-                  type: string
-                filename:
                   type: string
                 license:
                   format: url
@@ -635,11 +672,7 @@ paths:
         content:
           application/vnd.phylopic.v2+json:
             schema:
-              type: array
-              items:
-                format: uuid
-                type: string
-                example: 123e4567-e89b-12d3-a456-426655440000
+              $ref: '#components/schemas/UUIDList'
       responses:
         '302':
           $ref: '#/components/responses/302'
@@ -734,10 +767,33 @@ paths:
               $ref: '#/components/headers/Content-Type'
           content:
             application/vnd.phylopic.v2+json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/ImageResource'
         '202':
           $ref: '#/components/responses/202'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
+    patch:
+      summary: Updates a specific image.
+      parameters:
+        - $ref: '#/components/parameters/uuid-Entity'
+      requestBody:
+        required: true
+        content:
+          application/vnd.phylopic.v2+json:
+            schema:
+              type: array
+              items:
+                format: uuid
+                type: string
+                example: 123e4567-e89b-12d3-a456-426655440000
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
         '404':
           $ref: '#/components/responses/404'
         '410':
@@ -750,7 +806,7 @@ paths:
         Note that this does not include all licenses for all images.
       responses:
         '200':
-          description: HAL JSON image record.
+          description: List of titled links to licenses.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
@@ -825,7 +881,7 @@ paths:
               $ref: '#/components/headers/Content-Type'
           content:
             application/vnd.phylopic.v2+json:
-              schema: 
+              schema:
                 type: object
                 required:
                   - _links
@@ -856,11 +912,7 @@ paths:
         content:
           application/vnd.phylopic.v2+json:
             schema:
-              type: array
-              items:
-                format: uuid
-                type: string
-                example: 123e4567-e89b-12d3-a456-426655440000
+              $ref: '#/components/schemas/UUIDList'
       responses:
         '302':
           $ref: '#/components/responses/302'
@@ -908,7 +960,7 @@ paths:
               $ref: '#/components/headers/Content-Type'
           content:
             application/vnd.phylopic.v2+json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/NodeResource'
         '404':
           $ref: '#/components/responses/404'
