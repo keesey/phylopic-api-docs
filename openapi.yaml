@@ -648,6 +648,23 @@ paths:
                     type: string
                     example: 2.0.0-alpha
   /accounts/{uuid}:
+    delete:
+      summary: Removes a specific user account.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
+        - $ref: '#/components/parameters/uuid-Entity'
+      responses:
+        '202':
+          $ref: '#/components/responses/202'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
     get:
       summary: Returns a specific user account.
       parameters:
@@ -798,6 +815,23 @@ paths:
         '416':
           $ref: '#/components/responses/416'
   /images/{uuid}:
+    delete:
+      summary: Removes a specific image.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
+        - $ref: '#/components/parameters/uuid-Entity'
+      responses:
+        '202':
+          $ref: '#/components/responses/202'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
     get:
       summary: Returns a specific image.
       parameters:
@@ -1028,6 +1062,23 @@ paths:
         '416':
           $ref: '#/components/responses/416'
   /nodes/{uuid}:
+    delete:
+      summary: Removes a specific node.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
+        - $ref: '#/components/parameters/uuid-Entity'
+      responses:
+        '202':
+          $ref: '#/components/responses/202'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
     get:
       summary: Returns a specific phylogenetic node.
       parameters:
