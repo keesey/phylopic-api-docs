@@ -380,7 +380,15 @@ components:
                 - self_image_set
                 - submitter
               properties:
+                ancestor_image_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
                 child_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
+                descendant_image_set:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                   readOnly: true
@@ -397,14 +405,6 @@ components:
                   nullable: true
                   readOnly: true
                 submitter:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
-                subnode_image_set:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
-                supernode_image_set:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                   readOnly: true
