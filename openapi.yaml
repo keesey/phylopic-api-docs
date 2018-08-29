@@ -618,17 +618,17 @@ paths:
               schema:
                 type: object
                 required:
-                  _links
-                  title
-                  version
+                  - _links
+                  - title
+                  - version
                 properties:
                   _links:
                     type: object
                     required:
-                      contact
-                      documentation
-                      resources
-                      self
+                      - contact
+                      - documentation
+                      - resources
+                      - self
                     properties:
                       contact:
                         $ref: '#/components/schemas/TitledLink'
@@ -831,7 +831,7 @@ paths:
         content:
           application/vnd.phylopic.v2+json:
             schema:
-              $ref: '#/components/parameters/Image'
+              $ref: '#/components/schemas/Image'
       responses:
         '202':
           $ref: '#/components/responses/202'
@@ -1059,7 +1059,7 @@ paths:
         content:
           application/vnd.phylopic.v2+json:
             schema:
-              $ref: '#/components/parameters/Node'
+              $ref: '#/components/schemas/Node'
       responses:
         '202':
           $ref: '#/components/responses/202'
