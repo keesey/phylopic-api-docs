@@ -67,6 +67,26 @@ components:
       schema:
         pattern: '^((general_node|specific_node|submitter) )*(general_node|specific_node|submitter)$'
         type: string
+    embed-Node:
+      name: embed
+      in: query
+      description: |
+        A space-separated list of related entities to embed. May include:
+        - `parent`
+        - `submitter`
+
+        If omitted, no entities will be embedded.
+      schema:
+        pattern: '^((general_node|specific_node|submitter) )*(general_node|specific_node|submitter)$'
+        type: string
+    uuid-Entity:
+      name: uuid
+      in: path
+      required: true
+      description: The UUID of the entity.
+      schema:
+        format: uuid
+        type: string
   responses:
     '202':
       description: The requested has been accepted but is still being processed.
@@ -368,7 +388,7 @@ components:
                   type: array
                   readOnly: true
                   items:
-                    $ref: '#/components/schemas/Link'
+                    $ref: '#/components/schemas/TitledLink'
                 parent:
                   $ref: '#/components/schemas/Link'
                   nullable: true
@@ -569,14 +589,8 @@ paths:
       summary: Returns a specific image.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Image'
-        - name: uuid
-          in: path
-          required: true
-          description: The UUID of the image.
-          schema:
-            format: uuid
-            type: string
       responses:
         '200':
           description: HAL JSON image record.
@@ -611,3 +625,112 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TitledLink'
+  /nodes:
+    get:
+      summary: Returns a list of nodes.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/embed-Node'
+        - name: created<
+          in: query
+          required: false
+          description: Limits results to entries created on or before this time.
+          schema:
+            format: date-time
+            type: string
+        - name: created>
+          in: query
+          required: false
+          description: Limits results to entries created on or after this time.
+          schema:
+            format: date-time
+            type: string
+        - name: modified<
+          in: query
+          required: false
+          description: Limits results to entries modified on or before this time.
+          schema:
+            format: date-time
+            type: string
+        - name: modified>
+          in: query
+          required: false
+          description: Limits results to entries modified on or after this time.
+          schema:
+            format: date-time
+            type: string
+        - name: search
+          in: query
+          required: false
+          description: Limits entries to nodes with the search text in one of their names.
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          description: |
+            A space-separated list of fields to sort by. May include:
+            - `created`
+            - `modified`
+
+            Either of these be prepended by `-` to indicate descending order. The default value is `-modified`.
+          schema:
+            pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
+            type: string
+      responses:
+        '206':
+          description: HAL JSON list of embedded node records.
+          headers:
+            Accept-Ranges:
+              $ref: '#/components/headers/Accept-Ranges'
+            Content-Range:
+              $ref: '#/components/headers/Content-Range'
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema: 
+                type: object
+                required:
+                  - _links
+                properties:
+                  _embedded:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/NodeResource'
+                  _links:
+                    type: object
+                    required:
+                      - self
+                    properties:
+                      self:
+                        $ref: '#/components/schemas/Link'
+        '400':
+          $ref: '#/components/responses/400'
+        '416':
+          $ref: '#/components/responses/416'
+  /nodes/{uuid}:
+    get:
+      summary: Returns a specific node.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
+        - $ref: '#/components/parameters/embed-Node'
+      responses:
+        '200':
+          description: HAL JSON image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema: 
+                $ref: '#/components/schemas/NodeResource'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
