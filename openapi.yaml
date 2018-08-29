@@ -509,8 +509,8 @@ components:
                 - child_set
                 - descendant_image_set
                 - external
-                - icon_image
                 - parent
+                - primary_image
                 - self
                 - self_image_set
                 - submitter
@@ -536,13 +536,13 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/TitledLink'
-                icon_image:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
                 parent:
                   $ref: '#/components/schemas/Link'
                   nullable: true
+                primary_image:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
                 self_image_set:
                   $ref: '#/components/schemas/Link'
                   nullable: true
