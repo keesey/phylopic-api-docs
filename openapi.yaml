@@ -769,8 +769,8 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/ImageResource'
-        '202':
-          $ref: '#/components/responses/202'
+        '204':
+          $ref: '#/components/responses/204'
         '404':
           $ref: '#/components/responses/404'
         '410':
@@ -778,22 +778,59 @@ paths:
     patch:
       summary: Updates a specific image.
       parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
         content:
           application/vnd.phylopic.v2+json:
             schema:
-              type: array
-              items:
-                format: uuid
-                type: string
-                example: 123e4567-e89b-12d3-a456-426655440000
+              $ref: '#/components/parameters/Image'
       responses:
-        '204':
-          $ref: '#/components/responses/204'
+        '202':
+          $ref: '#/components/responses/202'
         '400':
           $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
+  /images/{uuid}/file:
+    post:
+      summary: Updates a specific image's file.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
+        - $ref: '#/components/parameters/uuid-Entity'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  format: binary
+                  type: string
+      responses:
+        '202':
+          $ref: '#/components/responses/202'
+        '303':
+          description: The file was already uploaded for another image.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
         '410':
@@ -947,7 +984,7 @@ paths:
           $ref: '#/components/responses/416'
   /nodes/{uuid}:
     get:
-      summary: Returns a specific node.
+      summary: Returns a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -966,3 +1003,34 @@ paths:
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
+    patch:
+      summary: Updates a specific phylogenetic node.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
+        - $ref: '#/components/parameters/uuid-Entity'
+      requestBody:
+        required: true
+        content:
+          application/vnd.phylopic.v2+json:
+            schema:
+              $ref: '#/components/parameters/Node'
+      responses:
+        '202':
+          $ref: '#/components/responses/202'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
+  /ping:
+    get:
+      description: For checking if the API is up.
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
