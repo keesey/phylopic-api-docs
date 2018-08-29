@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: PhyloPic API
-  version: 2.0.0
+  version: 2.0.0-alpha
 components:
   headers:
     Accept-Ranges:
@@ -12,8 +12,8 @@ components:
         The range of embedded items, in the format 'items {start}-{end}/{total}'.
       example: items 0-9/88
     Content-Type:
-      description: The MIME type for the payload, including API version. Must be `application/vnd.phylopic.v1+json`.
-      example: application/vnd.phylopic.v1+json
+      description: The MIME type for the payload, including API version. Must be `application/vnd.phylopic.v2+json`.
+      example: application/vnd.phylopic.v2+json
     Location:
       description: The URL for the resource.
   parameters:
@@ -21,11 +21,11 @@ components:
       name: Accept
       in: header
       required: true
-      description: The MIME type for the response, including API version. Must include `application/vnd.phylopic.v1+json`.
+      description: The MIME type for the response, including API version. Must include `application/vnd.phylopic.v2+json`.
       schema:
         format: mimetype
         type: string
-      example: application/vnd.phylopic.v1+json
+      example: application/vnd.phylopic.v2+json
     Authentication:
       name: Authentication
       in: header
@@ -37,16 +37,19 @@ components:
       name: Content-Type
       in: header
       required: true
-      description: The MIME type for the payload, including API version. Must be `application/vnd.phylopic.v1+json`.
+      description: The MIME type for the payload, including API version. Must be `application/vnd.phylopic.v2+json`.
       schema:
         format: mimetype
         type: string
-      example: application/vnd.phylopic.v1+json
+      example: application/vnd.phylopic.v2+json
     Range:
       name: Range
       in: header
       required: true
-      description: A range of the items to read, inclusive.
+      description: |
+        A range of the items to read, inclusive.
+
+        Example: `items=0-9`
       schema:
         pattern: '^items=\d+-\d+$'
         type: string
@@ -56,22 +59,22 @@ components:
       in: query
       description: |
         A space-separated list of related entities to embed. May include:
-        - `general_name`
-        - `specific_name`
+        - `general_node`
+        - `specific_node`
         - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((general_name|specific_name|submitter) )*(general_name|specific_name|submitter)$'
+        pattern: '^((general_node|specific_node|submitter) )*(general_node|specific_node|submitter)$'
         type: string
   responses:
     '202':
-      description: Accepted
+      description: The requested has been accepted but is still being processed.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
-        application/vnd.phylopic.v1+json:
+        application/vnd.phylopic.v2+json:
           schema:
             type: object
             required:
@@ -88,86 +91,66 @@ components:
               uuid:
                 format: uuid
                 type: string
+    '303':
+      description: The submission was already made.
+      headers:
+        Location:
+          $ref: '#/components/headers/Location'
     '400':
-      description: Bad Request
+      description: There is an error in the request.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
-        application/vnd.phylopic.v1+json:
+        application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
     '401':
-      description: Unauthenticated
+      description: The user is not currently authenticated.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
-        application/vnd.phylopic.v1+json:
+        application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
     '403':
-      description: Forbidden
+      description: The user does not have permission to perform this action.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
-        application/vnd.phylopic.v1+json:
+        application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
     '404':
-      description: Not Found
+      description: The resource cannot be found.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
-        application/vnd.phylopic.v1+json:
+        application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
     '410':
-      description: Gone
+      description: The resource has been removed.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
-        application/vnd.phylopic.v1+json:
+        application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
     '416':
-      description: Requested Range Not Satisfiable
+      description: The requested range is not satisfiable.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
-        application/vnd.phylopic.v1+json:
+        application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
   schemas:
-    Entity:
-      type: object
-      required:
-        - _links
-        - created
-        - modified
-        - uuid
-      properties:
-        _links:
-          type: object
-          required:
-            - self
-          properties:
-        created:
-          format: date-time
-          readOnly: true
-          type: string
-        modified:
-          format: date-time
-          readOnly: true
-          type: string
-        uuid:
-          format: uuid
-          readOnly: true
-          type: string
     Account:
       required:
         - _links
@@ -189,7 +172,7 @@ components:
                 submitted_image_set:
                   $ref: '#/components/schemas/Link'
                   readOnly: true
-                submitted_name_set:
+                submitted_node_set:
                   $ref: '#/components/schemas/Link'
                   readOnly: true
             email:
@@ -216,6 +199,31 @@ components:
               type: object
               properties:
         - $ref: '#/components/schemas/Account'
+    Entity:
+      type: object
+      required:
+        - _links
+        - created
+        - modified
+        - uuid
+      properties:
+        _links:
+          type: object
+          required:
+            - self
+          properties:
+        created:
+          format: date-time
+          readOnly: true
+          type: string
+        modified:
+          format: date-time
+          readOnly: true
+          type: string
+        uuid:
+          format: uuid
+          readOnly: true
+          type: string
     Errors:
       type: array
       items:
@@ -250,20 +258,20 @@ components:
             _links:
               type: object
               required:
-                - general_name
+                - general_node
                 - http://ogp.me/ns#image
                 - icon_file
                 - license
-                - name_set
                 - raster_files
                 - self
-                - specific_name
+                - specific_node
                 - submitter
+                - node_set
                 - thumbnail_file
                 - twitter:image
                 - vector_file
               properties:
-                general_name:
+                general_node:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                 'http://ogp.me/ns#image':
@@ -272,15 +280,19 @@ components:
                 icon_file:
                   $ref: '#/components/schemas/MediaLink'
                   readOnly: true
-                name_set:
+                license:
                   $ref: '#/components/schemas/Link'
-                  readOnly: true
                 raster_files:
                   type: array
                   readOnly: true
                   items:
                     $ref: '#/components/schemas/MediaLink'
+                specific_node:
+                  $ref: '#/components/schemas/Link'
                 submitter:
+                  $ref: '#/components/schemas/Link'
+                  readOnly: true
+                node_set:
                   $ref: '#/components/schemas/Link'
                   readOnly: true
                 thumbnail_file:
@@ -293,10 +305,6 @@ components:
                   $ref: '#/components/schemas/MediaLink'
                   readOnly: true
                   nullable: true
-                license:
-                  $ref: '#/components/schemas/Link'
-                specific_name:
-                  $ref: '#/components/schemas/Link'
     ImageResource:
       required:
         - _embedded
@@ -306,11 +314,11 @@ components:
             _embedded:
               type: object
               properties:
-                general_name:
-                  $ref: '#/components/schemas/Name'
+                general_node:
+                  $ref: '#/components/schemas/Node'
                   nullable: true
-                specific_name:
-                  $ref: '#/components/schemas/Name'
+                specific_node:
+                  $ref: '#/components/schemas/Node'
                 submitter:
                   $ref: '#/components/schemas/Account'
         - $ref: '#/components/schemas/Image'
@@ -331,48 +339,39 @@ components:
             type:
               format: mimetype
               type: string
-    Name:
+    Node:
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
           required:
             - _links
-            - parts
+            - names
             - root
-            - text
           properties:
             _links:
               type: object
               required:
+                - ancestor_image_set
+                - child_set
+                - descendant_image_set
                 - external
-                - hyperonym_image_set
-                - hyponym_image_set
-                - immediate_hyperonym
+                - parent
                 - self
                 - self_image_set
                 - submitter
-                - synonym_set
               properties:
+                child_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
                 external:
                   type: array
                   readOnly: true
                   items:
                     $ref: '#/components/schemas/Link'
-                hyperonym_image_set:
+                parent:
                   $ref: '#/components/schemas/Link'
                   nullable: true
-                  readOnly: true
-                hyponym_image_set:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
-                immediate_hyperonym:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                immediate_hyponym_set:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
                 self_image_set:
                   $ref: '#/components/schemas/Link'
                   nullable: true
@@ -381,30 +380,35 @@ components:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                   readOnly: true
-                synonym_set:
+                subnode_image_set:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                   readOnly: true
-            parts:
+                supernode_image_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
+            names:
               type: array
               items:
-                type: object
-                required:
-                  - class
-                  - text
-                properties:
-                  class:
-                    format: '^(citation|comment|operator|rank|scientific|vernacular)$'
-                    type: string
-                  text:
-                    format: '^\S+( \S+)*$'
-                    type: string
+                type: array
+                items:
+                  type: object
+                  required:
+                    - class
+                    - text
+                  properties:
+                    class:
+                      format: '^(citation|comment|operator|rank|scientific|vernacular)$'
+                      type: string
+                      example: scientific
+                    text:
+                      format: '^\S+( \S+)*$'
+                      type: string
+                      example: Homo sapiens
             root:
               type: boolean
-            text:
-              type: string
-              readOnly: true
-    NameResource:
+    NodeResource:
       required:
         - _embedded
       allOf:
@@ -413,13 +417,20 @@ components:
             _embedded:
               type: object
               properties:
-                immediate_hyperonym:
-                  $ref: '#/components/schemas/Name'
+                parent:
+                  $ref: '#/components/schemas/Node'
                   nullable: true
                 submitter:
                   $ref: '#/components/schemas/Account'
                   nullable: true
-        - $ref: '#/components/schemas/Name'
+        - $ref: '#/components/schemas/Node'
+    TitledLink:
+      allOf:
+        - $ref: '#/components/schemas/Link'
+        - type: object
+          properties:
+            title:
+              type: string
 paths:
   /images:
     get:
@@ -428,6 +439,54 @@ paths:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Range'
         - $ref: '#/components/parameters/embed-Image'
+        - name: created<
+          in: query
+          required: false
+          description: Limits results to entries created on or before this time.
+          schema:
+            format: date-time
+            type: string
+        - name: created>
+          in: query
+          required: false
+          description: Limits results to entries created on or after this time.
+          schema:
+            format: date-time
+            type: string
+        - name: license_components
+          in: query
+          required: false
+          description: |
+            Limits entries to those with or without certain license components.
+
+            Components are represented as a space-separated list. May include:
+            - `by` (Attribution)
+            - `nc` (Noncommercial)
+            - `sa` (Standalone)
+
+            Any of these be prepended by `-` to indicate that only images under licenses *without* that component should be returned.
+
+            Examples:
+            - `by`: only include images with licenses that require attribution.
+            - `-by`: exclude all images with licenses that require attribution.
+            - `-by -nc -sa`: only include images in the public domain (having none of the license components).
+          schema:
+            format: '^(\-?(by|nc|sa) )*(\-?(by|nc|sa))$'
+            type: string
+        - name: modified<
+          in: query
+          required: false
+          description: Limits results to entries modified on or before this time.
+          schema:
+            format: date-time
+            type: string
+        - name: modified>
+          in: query
+          required: false
+          description: Limits results to entries modified on or after this time.
+          schema:
+            format: date-time
+            type: string
         - name: sort
           in: query
           required: false
@@ -451,7 +510,7 @@ paths:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
           content:
-            application/vnd.phylopic.v1+json:
+            application/vnd.phylopic.v2+json:
               schema: 
                 type: object
                 required:
@@ -499,12 +558,12 @@ paths:
       responses:
         '202':
           $ref: '#/components/responses/202'
+        '303':
+          $ref: '#/components/responses/303'
         '400':
           $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
   /images/{uuid}:
     get:
       summary: Returns a specific image.
@@ -525,10 +584,30 @@ paths:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
           content:
-            application/vnd.phylopic.v1+json:
+            application/vnd.phylopic.v2+json:
               schema: 
                 $ref: '#/components/schemas/ImageResource'
+        '202':
+          $ref: '#/components/responses/202'
         '404':
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
+  /licenses:
+    get:
+      summary: |
+        Return a list of all licenses that may be used for new submissions.
+
+        Note that this does not include all licenses for all images.
+      responses:
+        '200':
+          description: HAL JSON image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TitledLink'
