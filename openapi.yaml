@@ -304,7 +304,7 @@ components:
               required:
                 - self
                 - submitted_image_set
-                - submitted_name_set
+                - submitted_node_set
               properties:
                 submitted_image_set:
                   $ref: '#/components/schemas/Link'
