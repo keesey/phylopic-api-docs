@@ -248,7 +248,7 @@ components:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/ImageResource'
+                      $ref: '#/components/schemas/ImageWithEmbedded'
               _links:
                 type: object
                 required:
@@ -278,7 +278,7 @@ components:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/NodeResource'
+                      $ref: '#/components/schemas/NodeWithEmbedded'
               _links:
                 type: object
                 required:
@@ -474,7 +474,7 @@ components:
                   $ref: '#/components/schemas/MediaLink'
                   readOnly: true
                   nullable: true
-    ImageResource:
+    ImageWithEmbedded:
       description: Resource for a submitted image.
       required:
         - _embedded
@@ -622,7 +622,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NodeName'
-    NodeResource:
+    NodeWithEmbedded:
       description: A resource for a phylogenetic node.
       required:
         - _embedded
@@ -917,7 +917,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                $ref: '#/components/schemas/ImageResource'
+                $ref: '#/components/schemas/ImageWithEmbedded'
         '204':
           $ref: '#/components/responses/204'
         '404':
@@ -1183,7 +1183,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                $ref: '#/components/schemas/NodeResource'
+                $ref: '#/components/schemas/NodeWithEmbedded'
         '404':
           $ref: '#/components/responses/404'
         '410':
