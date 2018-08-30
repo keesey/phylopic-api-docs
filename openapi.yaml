@@ -99,6 +99,7 @@ components:
       schema:
         format: uuid
         type: string
+        example: '123e4567-e89b-12d3-a456-426655440000'
   responses:
     '202':
       description: The request has been accepted but is still being processed.
@@ -123,6 +124,7 @@ components:
               uuid:
                 format: uuid
                 type: string
+                example: '123e4567-e89b-12d3-a456-426655440000'
     '204':
       description: The request completed successfuly. No further information is provided.
     '302':
@@ -150,6 +152,7 @@ components:
               uuid:
                 format: uuid
                 type: string
+                example: '123e4567-e89b-12d3-a456-426655440000'
     '307':
       description: The requested resource is available at another location, temporarily.
       headers:
@@ -330,6 +333,28 @@ components:
       allOf:
         - $ref: '#/components/schemas/Account'
         - description: Resource for a user's account information. Currently no different from `Account`.
+    Domain:
+      description: A domain for all entities of a given kind.
+      type: object
+      required:
+        - _links
+      properties:
+        _links:
+          type: object
+          required:
+            - entity_creation
+            - entity_set
+            - entity_set_creation
+            - self
+          properties:
+            entity_creation:
+              $ref: '#/components/schemas/Link'
+            entity_set:
+              $ref: '#/components/schemas/Link'
+            entity_set_creation:
+              $ref: '#/components/schemas/Link'
+            self:
+              $ref: '#/components/schemas/Link'
     Entity:
       description: Common properties for all entities.
       type: object
@@ -474,7 +499,7 @@ components:
         href:
           format: url
           type: string
-          example: /path/123e4567-e89b-12d3-a456-426655440000
+          example: /path
     MediaLink:
       description: A link to an image file.
       allOf:
@@ -482,7 +507,7 @@ components:
         - type: object
           properties:
             href:
-              example: '/path/123e4567-e89b-12d3-a456-426655440000.img'
+              example: '/path/123e4567-e89b-12d3-a456-426655440000/raster32.png'
             sizes:
               pattern: '^\d+x\d+$'
               type: string
@@ -490,7 +515,7 @@ components:
             type:
               format: mimetype
               type: string
-              example: 'image/img'
+              example: 'image/png'
     Node:
       description: A phylogenetic node, corresponding to a taxonomic unit.
       allOf:
@@ -574,26 +599,6 @@ components:
             format: '^\S+( \S+)*$'
             type: string
             example: Homo sapiens
-    NodeResource:
-      description: A resource for a phylogenetic node.
-      required:
-        - _embedded
-        - _links
-        - names
-        - root
-      allOf:
-        - type: object
-          properties:
-            _embedded:
-              type: object
-              properties:
-                parent:
-                  $ref: '#/components/schemas/Node'
-                  nullable: true
-                submitter:
-                  $ref: '#/components/schemas/Account'
-                  nullable: true
-        - $ref: '#/components/schemas/Node'
     NodeReference:
       description: A reference to a phylogenetic node.
       required:
@@ -617,6 +622,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NodeName'
+    NodeResource:
+      description: A resource for a phylogenetic node.
+      required:
+        - _embedded
+        - _links
+        - names
+        - root
+      allOf:
+        - type: object
+          properties:
+            _embedded:
+              type: object
+              properties:
+                parent:
+                  $ref: '#/components/schemas/Node'
+                  nullable: true
+                submitter:
+                  $ref: '#/components/schemas/Account'
+                  nullable: true
+        - $ref: '#/components/schemas/Node'
     TitledLink:
       description: A link with a title, usually for an external resource.
       allOf:
@@ -723,12 +748,19 @@ paths:
           $ref: '#/components/responses/410'
   /images:
     get:
-      summary: Returns the location of the current set of all images.
+      summary: Returns links to resources for images.
       parameters:
         - $ref: '#/components/parameters/Accept'
       responses:
-        '307':
-          $ref: '#/components/responses/307'
+        '200':
+          description: HAL JSON domain resource.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Domain'
     post:
       summary: Submits an image file for processing and addition.
       parameters:
@@ -892,7 +924,7 @@ paths:
         '410':
           $ref: '#/components/responses/410'
     patch:
-      summary: Updates a specific image.
+      summary: Updates a specific image's data.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Authentication'
@@ -916,7 +948,6 @@ paths:
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
-  /images/{uuid}/file:
     post:
       summary: Updates a specific image's file.
       parameters:
@@ -971,86 +1002,35 @@ paths:
                   $ref: '#/components/schemas/TitledLink'
   /nodes:
     get:
-      summary: Returns a list of nodes.
+      summary: Returns links to resources for phylogenetic nodes.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Range'
-        - $ref: '#/components/parameters/embed-Node'
-        - name: created<
-          in: query
-          required: false
-          description: Limits results to entries created on or before this time.
-          schema:
-            format: date-time
-            type: string
-        - name: created>
-          in: query
-          required: false
-          description: Limits results to entries created on or after this time.
-          schema:
-            format: date-time
-            type: string
-        - name: modified<
-          in: query
-          required: false
-          description: Limits results to entries modified on or before this time.
-          schema:
-            format: date-time
-            type: string
-        - name: modified>
-          in: query
-          required: false
-          description: Limits results to entries modified on or after this time.
-          schema:
-            format: date-time
-            type: string
-        - name: sort
-          in: query
-          required: false
-          description: |
-            A space-separated list of fields to sort by. May include:
-            - `created`
-            - `modified`
-
-            Either of these be prepended by `-` to indicate descending order. The default value is `-modified`.
-          schema:
-            pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
-            type: string
       responses:
-        '206':
-          description: HAL JSON list of embedded node records.
+        '200':
+          description: HAL JSON domain resource.
           headers:
-            Accept-Ranges:
-              $ref: '#/components/headers/Accept-Ranges'
-            Content-Range:
-              $ref: '#/components/headers/Content-Range'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                type: object
-                required:
-                  - _links
-                properties:
-                  _embedded:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/NodeResource'
-                  _links:
-                    type: object
+                allOf:
+                  - $ref: '#/components/schemas/Domain'
+                  - type: object
                     required:
-                      - self
+                      - _links
                     properties:
-                      self:
-                        $ref: '#/components/schemas/Link'
-        '400':
-          $ref: '#/components/responses/400'
-        '416':
-          $ref: '#/components/responses/416'
+                      _links:
+                        type: object
+                        required:
+                          - entity_creation
+                          - entity_set
+                          - entity_set_creation
+                          - search
+                          - self
+                        properties:
+                          search:
+                            $ref: '#/components/schemas/Link'
   /nodes/resolve/{uri}:
     get:
       summary: Resolves an external URI to the closest phylogenetic node.
@@ -1122,6 +1102,7 @@ paths:
                         $ref: '#/components/schemas/Link'
                   query:
                     type: string
+                    example: Homo sapiens
         '400':
           $ref: '#/components/responses/400'
         '416':
