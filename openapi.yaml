@@ -329,10 +329,6 @@ components:
               readOnly: true
               type: string
               example: 'member'
-    AccountResource:
-      allOf:
-        - $ref: '#/components/schemas/Account'
-        - description: Resource for a user's account information. Currently no different from `Account`.
     Domain:
       description: A domain for all entities of a given kind.
       type: object
@@ -741,7 +737,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                $ref: '#/components/schemas/AccountResource'
+                $ref: '#/components/schemas/Account'
         '404':
           $ref: '#/components/responses/404'
         '410':
