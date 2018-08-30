@@ -109,22 +109,7 @@ components:
       content:
         application/vnd.phylopic.v2+json:
           schema:
-            type: object
-            required:
-              - _links
-              - uuid
-            properties:
-              _links:
-                type: object
-                required:
-                  - self
-                properties:
-                  self:
-                    $ref: '#/components/schemas/Link'
-              uuid:
-                format: uuid
-                type: string
-                example: '123e4567-e89b-12d3-a456-426655440000'
+            $ref: '#/content/schemas/EntityReference'
     '204':
       description: The request completed successfuly. No further information is provided.
     '302':
@@ -137,22 +122,7 @@ components:
       content:
         application/vnd.phylopic.v2+json:
           schema:
-            type: object
-            required:
-              - _links
-              - uuid
-            properties:
-              _links:
-                type: object
-                required:
-                  - self
-                properties:
-                  self:
-                    $ref: '#/components/schemas/Link'
-              uuid:
-                format: uuid
-                type: string
-                example: '123e4567-e89b-12d3-a456-426655440000'
+            $ref: '#/content/schemas/EntityReference'
     '307':
       description: The requested resource is available at another location, temporarily.
       headers:
@@ -353,11 +323,28 @@ components:
               $ref: '#/components/schemas/Link'
     Entity:
       description: Common properties for all entities.
-      type: object
       required:
         - _links
         - created
         - modified
+        - uuid
+      allOf:
+        - $ref: '#/components/schemas/EntityReference'
+        - type: object
+          properties:
+            created:
+              format: date-time
+              readOnly: true
+              type: string
+            modified:
+              format: date-time
+              readOnly: true
+              type: string
+    EntityReference:
+      description: Identifier and link for an entity.
+      type: object
+      required:
+        - _links
         - uuid
       properties:
         _links:
@@ -367,20 +354,10 @@ components:
           properties:
             self:
               $ref: '#/components/schemas/Link'
-              readOnly: true
-        created:
-          format: date-time
-          readOnly: true
-          type: string
-        modified:
-          format: date-time
-          readOnly: true
-          type: string
         uuid:
           format: uuid
-          readOnly: true
           type: string
-          example: '123e4567-e89b-12d3-a456-426655440000'
+          example: 123e4567-e89b-12d3-a456-426655440000
     Errors:
       description: List of errors.
       type: array
@@ -1028,6 +1005,33 @@ paths:
                         properties:
                           search:
                             $ref: '#/components/schemas/Link'
+    post:
+      summary: Creates a new phylogenetic node.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Authentication'
+      requestBody:
+        required: true
+        content:
+          application/vnd.phylopic.v2+json:
+            schema:
+              $ref: '#/components/schemas/Node'
+      responses:
+        '201':
+          description: The node has been created.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Node'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
   /nodes/resolve/{uri}:
     get:
       summary: Resolves an external URI to the closest phylogenetic node.
