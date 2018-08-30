@@ -109,7 +109,7 @@ components:
       content:
         application/vnd.phylopic.v2+json:
           schema:
-            $ref: '#/content/schemas/EntityReference'
+            $ref: '#/components/schemas/EntityReference'
     '204':
       description: The request completed successfuly. No further information is provided.
     '302':
@@ -122,7 +122,7 @@ components:
       content:
         application/vnd.phylopic.v2+json:
           schema:
-            $ref: '#/content/schemas/EntityReference'
+            $ref: '#/components/schemas/EntityReference'
     '307':
       description: The requested resource is available at another location, temporarily.
       headers:
