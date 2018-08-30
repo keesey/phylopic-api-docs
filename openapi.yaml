@@ -859,7 +859,7 @@ paths:
         '410':
           $ref: '#/components/responses/410'
     get:
-      summary: Returns a specific image.
+      summary: Returns data for a specific image.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -941,10 +941,11 @@ paths:
           $ref: '#/components/responses/410'
   /licenses:
     get:
-      summary: |
-        Return a list of all licenses that may be used for new submissions.
+      summary: Returns a list of licenses.
+      description:
+        Returns a list of all licenses that may be used for new submissions.
 
-        Note that this does not include all licenses for all images.
+        Note that this does not include all licenses for all images in the database.
       responses:
         '200':
           description: List of titled links to licenses.
@@ -1053,7 +1054,7 @@ paths:
             example: Homo sapiens
       responses:
         '206':
-          description: HAL JSON list of embedded partial node records or node references.
+          description: HAL JSON description of search results.
           headers:
             Accept-Ranges:
               $ref: '#/components/headers/Accept-Ranges'
@@ -1093,7 +1094,7 @@ paths:
           $ref: '#/components/responses/416'
   /nodes/sets:
     post:
-      summary: Creates or retrieves a set of nodes.
+      summary: Creates or retrieves a set of phylogenetic nodes.
       requestBody:
         required: true
         content:
@@ -1107,7 +1108,7 @@ paths:
           $ref: '#/components/responses/400'
   /nodes/sets/{uuid}:
     get:
-      summary: Returns a specific set of nodes.
+      summary: Returns a specific set of phylogenetic nodes.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Range'
@@ -1135,7 +1136,7 @@ paths:
           $ref: '#/components/responses/416'
   /nodes/{uuid}:
     delete:
-      summary: Removes a specific node.
+      summary: Removes a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Authentication'
@@ -1198,7 +1199,7 @@ paths:
           $ref: '#/components/responses/410'
   /ping:
     get:
-      description: For checking if the API is up.
+      summary: Checks if the API is operational.
       responses:
         '204':
           $ref: '#/components/responses/204'
