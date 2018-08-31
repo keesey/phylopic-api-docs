@@ -739,6 +739,9 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - file
+                - license
               properties:
                 attribution:
                   type: string
@@ -931,6 +934,8 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required:
+                - file
               properties:
                 file:
                   format: binary
