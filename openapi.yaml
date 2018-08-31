@@ -650,6 +650,11 @@ components:
             format: uuid
             type: string
             example: 123e4567-e89b-12d3-a456-426655440000
+  securitySchemes:
+    Member:
+      description: Registered member.
+      type: http
+      scheme: bearer
 paths:
   /:
     get:
@@ -765,6 +770,8 @@ paths:
           $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
+      security:
+        - Member: []
   /images/sets:
     post:
       summary: Creates or retrieves a set of images.
@@ -872,6 +879,8 @@ paths:
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
+      security:
+        - Member: []
     get:
       summary: Returns data for a specific image.
       parameters:
@@ -919,6 +928,8 @@ paths:
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
+      security:
+        - Member: []
     post:
       summary: Updates a specific image's file.
       parameters:
@@ -953,6 +964,8 @@ paths:
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
+      security:
+        - Member: []
   /licenses:
     get:
       summary: Returns a list of licenses.
@@ -1030,6 +1043,8 @@ paths:
           $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
+      security:
+        - Member: []
   /nodes/resolve/{uri}:
     get:
       summary: Resolves an external URI to the closest phylogenetic node.
@@ -1166,6 +1181,8 @@ paths:
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
+      security:
+        - Member: []
     get:
       summary: Returns a specific phylogenetic node.
       parameters:
@@ -1211,6 +1228,8 @@ paths:
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
+      security:
+        - Member: []
   /ping:
     get:
       summary: Checks if the API is operational.
