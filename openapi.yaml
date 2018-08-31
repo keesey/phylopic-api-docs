@@ -84,7 +84,7 @@ components:
       in: query
       description: |
         A space-separated list of related entities to embed. May include:
-        - `parent`
+        - `parent_node`
         - `submitter`
 
         If omitted, no entities will be embedded.
@@ -502,18 +502,19 @@ components:
             _links:
               type: object
               required:
-                - ancestors
+                - ancestor_nodes
                 - ancestor_image_set
-                - child_set
+                - child_node_set
                 - descendant_image_set
+                - descendant_node_set
                 - external
-                - parent
+                - parent_node
                 - primary_image
                 - self
                 - self_image_set
                 - submitter
               properties:
-                ancestors:
+                ancestor_nodes:
                   type: array
                   items:
                     $ref: '#/components/schemas/Link'
@@ -522,7 +523,7 @@ components:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                   readOnly: true
-                child_set:
+                child_node_set:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                   readOnly: true
@@ -530,11 +531,15 @@ components:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                   readOnly: true
+                descendant_node_set:
+                  $ref: '#/components/schemas/Link'
+                  nullable: true
+                  readOnly: true
                 external:
                   type: array
                   items:
                     $ref: '#/components/schemas/TitledLink'
-                parent:
+                parent_node:
                   $ref: '#/components/schemas/Link'
                   nullable: true
                 primary_image:
@@ -608,7 +613,7 @@ components:
             _embedded:
               type: object
               properties:
-                parent:
+                parent_node:
                   $ref: '#/components/schemas/Node'
                   nullable: true
                 submitter:
