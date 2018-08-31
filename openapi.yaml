@@ -38,13 +38,6 @@ components:
         format: mimetype
         type: string
       example: application/vnd.phylopic.v2+json
-    Authentication:
-      name: Authentication
-      in: header
-      required: true
-      description: Authentication for using this API.
-      schema:
-        type: string
     Content-Type:
       name: Content-Type
       in: header
@@ -740,7 +733,6 @@ paths:
       summary: Submits an image file for processing and addition.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Authentication'
       requestBody:
         required: true
         content:
@@ -866,7 +858,6 @@ paths:
       summary: Removes a specific image.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Authentication'
         - $ref: '#/components/parameters/uuid-Entity'
       responses:
         '202':
@@ -907,7 +898,6 @@ paths:
       summary: Updates a specific image's data.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Authentication'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -934,7 +924,6 @@ paths:
       summary: Updates a specific image's file.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Authentication'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -1020,7 +1009,6 @@ paths:
       summary: Creates a new phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Authentication'
       requestBody:
         required: true
         content:
@@ -1168,7 +1156,6 @@ paths:
       summary: Removes a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Authentication'
         - $ref: '#/components/parameters/uuid-Entity'
       responses:
         '202':
@@ -1207,7 +1194,6 @@ paths:
       summary: Updates a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Authentication'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
