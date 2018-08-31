@@ -72,24 +72,26 @@ components:
       description: |
         A space-separated list of related entities to embed. May include:
         - `general_node`
+        - `nodes`
         - `specific_node`
         - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((general_node|specific_node|submitter) )*(general_node|specific_node|submitter)$'
+        pattern: '^((general_node|nodes|specific_node|submitter) )*(general_node|nodes|specific_node|submitter)$'
         type: string
     embed-Node:
       name: embed
       in: query
       description: |
         A space-separated list of related entities to embed. May include:
+        - `ancestor_nodes`
         - `parent_node`
         - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((general_node|specific_node|submitter) )*(general_node|specific_node|submitter)$'
+        pattern: '^((ancestor_nodes|parent_node|submitter) )*(ancestor_nodes|parent_node|submitter)$'
         type: string
     uuid-Entity:
       name: uuid
@@ -408,7 +410,7 @@ components:
                 - self
                 - specific_node
                 - submitter
-                - node_set
+                - nodes
                 - thumbnail_file
                 - twitter:image
                 - vector_file
@@ -434,9 +436,11 @@ components:
                 submitter:
                   $ref: '#/components/schemas/Link'
                   readOnly: true
-                node_set:
-                  $ref: '#/components/schemas/Link'
+                nodes:
+                  type: array
                   readOnly: true
+                  items:
+                    $ref: '#/components/schemas/Link'
                 thumbnail_file:
                   $ref: '#/components/schemas/MediaLink'
                   readOnly: true
@@ -460,6 +464,11 @@ components:
                 general_node:
                   $ref: '#/components/schemas/Node'
                   nullable: true
+                nodes:
+                  type: array
+                  readOnly: true
+                  items:
+                    $ref: '#/components/schemas/Node'
                 specific_node:
                   $ref: '#/components/schemas/Node'
                 submitter:
