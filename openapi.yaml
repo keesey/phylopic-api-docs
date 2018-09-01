@@ -80,11 +80,12 @@ components:
         A space-separated list of related entities to embed. May include:
         - `ancestor_nodes`
         - `parent_node`
+        - `primary_image`
         - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((ancestor_nodes|parent_node|submitter) )*(ancestor_nodes|parent_node|submitter)$'
+        pattern: '^((ancestor_nodes|parent_node|primary_image|submitter) )*(ancestor_nodes|parent_node|primary_image|submitter)$'
         type: string
     uuid-Entity:
       name: uuid
@@ -621,6 +622,9 @@ components:
                     $ref: '#/components/schemas/Node'
                 parent_node:
                   $ref: '#/components/schemas/Node'
+                  nullable: true
+                primary_image:
+                  $ref: '#/components/schemas/Image'
                   nullable: true
                 submitter:
                   $ref: '#/components/schemas/Account'
