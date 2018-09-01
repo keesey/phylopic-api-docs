@@ -615,6 +615,10 @@ components:
             _embedded:
               type: object
               properties:
+                ancestor_nodes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Node'
                 parent_node:
                   $ref: '#/components/schemas/Node'
                   nullable: true
