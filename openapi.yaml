@@ -2,6 +2,8 @@ openapi: 3.0.1
 info:
   title: PhyloPic API
   version: 2.0.0-alpha
+servers:
+  - url: https://s3-us-west-1.amazonaws.com/data.phylopic.org/phy
 components:
   headers:
     Accept-Ranges:
@@ -361,14 +363,14 @@ components:
         type: object
         required:
           - code
-          - developerMessage
-          - userMessage
+          - developer_message
+          - user_message
         properties:
           code:
             format: int64
             type: integer
             example: 99
-          developerMessage:
+          developer_message:
             type: string
             example: 'Failure at line 100 of file script.scr.'
           documentation:
@@ -378,7 +380,7 @@ components:
           field:
             type: string
             example: 'attribution'
-          userMessage:
+          user_message:
             type: string
             example: 'This is an error message legible to users.'
     Image:
