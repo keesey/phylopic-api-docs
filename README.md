@@ -9,3 +9,7 @@ The primary file is [`openapi.yaml`](https://github.com/keesey/phylopic-api-docs
 ## Authors
 
 * **T. Michael Keesey** - [keesey](https://github.com/keesey)
+
+## License
+
+This project is licensed under the [CC0 License](https://creativecommons.org/share-your-work/public-domain/cc0).

@@ -1,20 +1,25 @@
 openapi: 3.0.1
 info:
   title: PhyloPic API
+  description: Documentation for the next version of *PhyloPic*'s Application Programming Interface.
+  contact:
+    name: Mike Keesey
+    email: keesey+phylopic@gmail.com
+  license:
+    name: CC0
+    url: https://creativecommons.org/share-your-work/public-domain/cc0
   version: 2.0.0-alpha
-servers:
-  - url: https://s3-us-west-1.amazonaws.com/data.phylopic.org/phy
 components:
   headers:
     Accept-Ranges:
-      description: The units acceptable for range requests. Always 'items'.
+      description: The units acceptable for range requests. Always `items`.
       example: items
       schema:
         pattern: '^items$'
         type: string
     Content-Range:
       description: |
-        The range of embedded items, in the format 'items {start}-{end}/{total}'.
+        The range of embedded items, in the format `items {start}-{end}/{total}`.
       example: items 0-9/88
       schema:
         pattern: '^items \d+-\d+/\d+$'
@@ -111,7 +116,7 @@ components:
     '204':
       description: The request completed successfuly. No further information is provided.
     '302':
-      description: The requested resource has been found.
+      description: The requested resource has been found at another location.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
@@ -195,7 +200,8 @@ components:
           schema:
             $ref: '#/components/schemas/Errors'
     'list-Image':
-      description: HAL JSON list of embedded image records.
+      description: |
+        [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) list of embedded image records.
       headers:
         Accept-Ranges:
           $ref: '#/components/headers/Accept-Ranges'
@@ -212,20 +218,26 @@ components:
             properties:
               _embedded:
                 type: object
+                description: Container for embedded entities.
                 properties:
                   items:
                     type: array
+                    description: The requested image entities.
                     items:
                       $ref: '#/components/schemas/ImageWithEmbedded'
               _links:
                 type: object
+                description: Container for a link to this resource (`self`).
                 required:
                   - self
                 properties:
                   self:
-                    $ref: '#/components/schemas/Link'
+                    allOf:
+                      - $ref: '#/components/schemas/Link'
+                      - description: Link to this entity.
     'list-Node':
-      description: HAL JSON list of embedded node records.
+      description: |
+        [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) list of embedded node records.
       headers:
         Accept-Ranges:
           $ref: '#/components/headers/Accept-Ranges'
@@ -242,18 +254,23 @@ components:
             properties:
               _embedded:
                 type: object
+                description: Container for embedded entities.
                 properties:
                   items:
                     type: array
+                    description: The requested node entities.
                     items:
                       $ref: '#/components/schemas/NodeWithEmbedded'
               _links:
+                description: Container for a link to this resource (`self`).
                 type: object
                 required:
                   - self
                 properties:
                   self:
-                    $ref: '#/components/schemas/Link'
+                    allOf:
+                      - $ref: '#/components/schemas/Link'
+                      - description: Link to this entity.
   schemas:
     Account:
       description: A user's account information.
@@ -281,18 +298,22 @@ components:
                   $ref: '#/components/schemas/Link'
                   readOnly: true
             email:
+              description: The user's email address.
               format: email
               readOnly: true
               type: string
             family_name:
+              description: The user's family name (or surname).
               readOnly: true
               type: string
               example: 'Linnaeus'
             given_name:
+              description: The user's given name.
               readOnly: true
               type: string
               example: 'Carolus'
             role:
+              description: The user's role.
               pattern: '^(member|admin)$'
               readOnly: true
               type: string
@@ -312,10 +333,13 @@ components:
             - self
           properties:
             entity_creation:
+              description: The endpoint for creating new entities.
               $ref: '#/components/schemas/Link'
             entity_set:
+              description: The URL for getting all entities in this domain.
               $ref: '#/components/schemas/Link'
             entity_set_creation:
+              description: The URL for creating and retrieving entity sets from lists of UUIDs.
               $ref: '#/components/schemas/Link'
             self:
               $ref: '#/components/schemas/Link'
@@ -331,10 +355,12 @@ components:
         - type: object
           properties:
             created:
+              description: The time the entity was created.
               format: date-time
               readOnly: true
               type: string
             modified:
+              description: The last time the entity was modified.
               format: date-time
               readOnly: true
               type: string
@@ -353,6 +379,7 @@ components:
             self:
               $ref: '#/components/schemas/Link'
         uuid:
+          description: The universally unique identifier for this entity.
           format: uuid
           type: string
           example: 123e4567-e89b-12d3-a456-426655440000
@@ -362,25 +389,29 @@ components:
       items:
         type: object
         required:
-          - code
           - developer_message
+          - type
           - user_message
         properties:
-          code:
-            format: int64
-            type: integer
-            example: 99
           developer_message:
+            description: A message with details for developers.
             type: string
             example: 'Failure at line 100 of file script.scr.'
           documentation:
+            description: A link to documentation for the error.
             format: url
             type: string
             example: 'http://domain/path/help.html'
           field:
+            description: The path to the field in the payload that caused the error.
             type: string
             example: 'attribution'
+          type:
+            description: The type of error, from [this list](https://docs.aws.amazon.com/apigateway/api-reference/resource/gateway-response/#responseType).
+            type: string
+            example: BAD_REQUEST_PARAMETERS
           user_message:
+            description: A message to be presented to the user.
             type: string
             example: 'This is an error message legible to users.'
     Image:
@@ -412,41 +443,59 @@ components:
                 - vector_file
               properties:
                 general_node:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specific_node` or a node indicating a common ancestor with `specific_node`.
+                      nullable: true
                 'http://ogp.me/ns#image':
-                  $ref: '#/components/schemas/MediaLink'
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/MediaLink'
+                    - description: A link to an image for use with Open Graph (PNG format).
+                      readOnly: true
                 icon_file:
-                  $ref: '#/components/schemas/MediaLink'
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/MediaLink'
+                    - description: A link to an icon-style image (PNG format).
+                      readOnly: true
                 license:
-                  $ref: '#/components/schemas/Link'
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the license that this image is under.
                 raster_files:
                   type: array
+                  description: A list of links to raster image files (PNG format) of various sizes.
                   readOnly: true
                   items:
                     $ref: '#/components/schemas/MediaLink'
                 specific_node:
-                  $ref: '#/components/schemas/Link'
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the node indicating the specific taxon that this image illustrates.
                 submitter:
-                  $ref: '#/components/schemas/Link'
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the account of the user who submitted this image.
+                      readOnly: true
                 nodes:
                   type: array
+                  description: Links to all nodes that this image illustrates, based on `specific_node` and (if provided) `general_node`.
                   readOnly: true
                   items:
                     $ref: '#/components/schemas/Link'
                 thumbnail_file:
-                  $ref: '#/components/schemas/MediaLink'
-                  readOnly: true
+                    - $ref: '#/components/schemas/MediaLink'
+                    - description: A link to a thumbnail image (PNG format).
+                      readOnly: true
                 'twitter:image':
-                  $ref: '#/components/schemas/MediaLink'
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/MediaLink'
+                    - description: A link to an image for use with Twitter (PNG format).
+                      readOnly: true
                 vector_file:
-                  $ref: '#/components/schemas/MediaLink'
-                  readOnly: true
-                  nullable: true
+                    - $ref: '#/components/schemas/MediaLink'
+                    - description: A link to a vector image file (SVG format).
+                      readOnly: true
+                      nullable: true
     ImageWithEmbedded:
       description: Resource for a submitted image.
       required:
@@ -456,6 +505,7 @@ components:
           properties:
             _embedded:
               type: object
+              description: Embedded entities related to the image. See `_links` for more information.
               properties:
                 general_node:
                   $ref: '#/components/schemas/Node'
@@ -479,10 +529,10 @@ components:
           type: string
           example: /path
     MediaLink:
-      description: A link to an image file.
       allOf:
         - $ref: '#/components/schemas/Link'
         - type: object
+          description: A link to an image file.
           properties:
             href:
               example: '/path/123e4567-e89b-12d3-a456-426655440000/raster32.png'
@@ -521,49 +571,57 @@ components:
               properties:
                 ancestor_nodes:
                   type: array
+                  description: Links to all ancestral nodes, starting with the parent and ending with the root.
                   items:
                     $ref: '#/components/schemas/Link'
                     readOnly: true
                 ancestor_image_set:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to an image set corresponding to the closest illustrated ancestor.
+                      nullable: true
+                      readOnly: true
                 child_node_set:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to the node set containing all child nodes (immediate descendants).
+                      nullable: true
+                      readOnly: true
                 descendant_image_set:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
-                descendant_node_set:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to an image set with all images illustrating all descendant nodes.
+                      nullable: true
+                      readOnly: true
                 external:
                   type: array
+                  description: Links to the same node under other domains (for example, Encyclopedia of Life).
                   items:
                     $ref: '#/components/schemas/TitledLink'
                 parent_node:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to the parent node (immediate ancestor).
+                      nullable: true
                 primary_image:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to the primary image for this node.
+                      nullable: true
                 self_image_set:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to an image set with all images illustrating this nodes.
+                      nullable: true
+                      readOnly: true
                 submitter:
-                  $ref: '#/components/schemas/Link'
-                  nullable: true
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the account of the user who submitted this node.
+                      readOnly: true
             names:
               type: array
+              description: A list of all of this node's names, starting with the preferred name.
               items:
                 $ref: '#/components/schemas/NodeName'
             root:
+              description: A flag that, if `true`, indicates that this is a root node and should not have a parent.
               type: boolean
     NodeName:
       description: A taxonomic name, associated with a phylogenetic node.
@@ -617,6 +675,7 @@ components:
           properties:
             _embedded:
               type: object
+              description: Embedded entities related to the phylogenetic node. See `_links` for more information.
               properties:
                 ancestor_nodes:
                   type: array
@@ -666,7 +725,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
       responses:
         '200':
-          description: HAL JSON resource description for the API.
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) resource description for the API.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
@@ -712,7 +772,8 @@ paths:
         - $ref: '#/components/parameters/uuid-Entity'
       responses:
         '200':
-          description: HAL JSON user account record.
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) user account record.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
@@ -731,7 +792,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
       responses:
         '200':
-          description: HAL JSON domain resource.
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) domain resource.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
@@ -893,7 +955,8 @@ paths:
         - $ref: '#/components/parameters/embed-Image'
       responses:
         '200':
-          description: HAL JSON image record.
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
@@ -996,7 +1059,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
       responses:
         '200':
-          description: HAL JSON domain resource.
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) domain resource.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
@@ -1086,7 +1150,8 @@ paths:
             example: Homo sapiens
       responses:
         '206':
-          description: HAL JSON description of search results.
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) description of search results.
           headers:
             Accept-Ranges:
               $ref: '#/components/headers/Accept-Ranges'
@@ -1193,7 +1258,8 @@ paths:
         - $ref: '#/components/parameters/embed-Node'
       responses:
         '200':
-          description: HAL JSON image record.
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
