@@ -415,13 +415,13 @@ components:
             type: string
             example: 'This is an error message legible to users.'
     Image:
-      description: A submitted image.
-      required:
-        - _links
-        - attribution
       allOf:
         - $ref: '#/components/schemas/Entity'
-        - type: object
+        - description: A submitted image.
+          required:
+            - _links
+            - attribution
+          type: object
           properties:
             attribution:
               type: string
@@ -483,6 +483,7 @@ components:
                   items:
                     $ref: '#/components/schemas/Link'
                 thumbnail_file:
+                  allOf:
                     - $ref: '#/components/schemas/MediaLink'
                     - description: A link to a thumbnail image (PNG format).
                       readOnly: true
@@ -492,6 +493,7 @@ components:
                     - description: A link to an image for use with Twitter (PNG format).
                       readOnly: true
                 vector_file:
+                  allOf:
                     - $ref: '#/components/schemas/MediaLink'
                     - description: A link to a vector image file (SVG format).
                       readOnly: true
@@ -545,10 +547,10 @@ components:
               type: string
               example: 'image/png'
     Node:
-      description: A phylogenetic node, corresponding to a taxonomic unit.
       allOf:
         - $ref: '#/components/schemas/Entity'
-        - type: object
+        - description: A phylogenetic node, corresponding to a taxonomic unit.
+          type: object
           required:
             - _links
             - names
@@ -573,8 +575,9 @@ components:
                   type: array
                   description: Links to all ancestral nodes, starting with the parent and ending with the root.
                   items:
-                    $ref: '#/components/schemas/Link'
-                    readOnly: true
+                    allOf:
+                      - $ref: '#/components/schemas/Link'
+                      - readOnly: true
                 ancestor_image_set:
                   allOf:
                     - $ref: '#/components/schemas/Link'
@@ -588,11 +591,13 @@ components:
                       nullable: true
                       readOnly: true
                 descendant_image_set:
+                  allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to an image set with all images illustrating all descendant nodes.
                       nullable: true
                       readOnly: true
                 descendant_node_set:
+                  allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to the node set containing descendant nodes.
                       nullable: true
@@ -603,14 +608,17 @@ components:
                   items:
                     $ref: '#/components/schemas/TitledLink'
                 parent_node:
+                  allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to the parent node (immediate ancestor).
                       nullable: true
                 primary_image:
+                  allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to the primary image for this node.
                       nullable: true
                 self_image_set:
+                  allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to an image set with all images illustrating this nodes.
                       nullable: true
