@@ -592,6 +592,11 @@ components:
                     - description: Link to an image set with all images illustrating all descendant nodes.
                       nullable: true
                       readOnly: true
+                descendant_node_set:
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to the node set containing descendant nodes.
+                      nullable: true
+                      readOnly: true
                 external:
                   type: array
                   description: Links to the same node under other domains (for example, Encyclopedia of Life).
