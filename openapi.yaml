@@ -563,7 +563,6 @@ components:
                 - ancestor_image_set
                 - child_node_set
                 - descendant_image_set
-                - descendant_node_set
                 - external
                 - parent_node
                 - primary_image
@@ -594,12 +593,6 @@ components:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to an image set with all images illustrating all descendant nodes.
-                      nullable: true
-                      readOnly: true
-                descendant_node_set:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: Link to the node set containing descendant nodes.
                       nullable: true
                       readOnly: true
                 external:
