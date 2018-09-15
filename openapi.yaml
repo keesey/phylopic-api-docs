@@ -86,13 +86,14 @@ components:
       description: |
         A space-separated list of related entities to embed. May include:
         - `ancestor_nodes`
+        - `child_nodes`
         - `parent_node`
         - `primary_image`
         - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((ancestor_nodes|parent_node|primary_image|submitter) )*(ancestor_nodes|parent_node|primary_image|submitter)$'
+        pattern: '^((ancestor_nodes|child_nodes|parent_node|primary_image|submitter) )*(ancestor_nodes|child_nodes|parent_node|primary_image|submitter)$'
         type: string
     uuid-Entity:
       name: uuid
@@ -560,8 +561,7 @@ components:
               type: object
               required:
                 - ancestor_nodes
-                - ancestor_image_set
-                - child_node_set
+                - child_nodes
                 - descendant_image_set
                 - external
                 - parent_node
@@ -577,13 +577,15 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - readOnly: true
-                ancestor_image_set:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: Link to an image set corresponding to the closest illustrated ancestor.
-                      nullable: true
-                      readOnly: true
-                child_node_set:
+                child_nodes:
+                  type: array
+                  description: |
+                    Links to all immediate descendant nodes, in alphabetical order.
+                    Note that this only includes illustrated nodes.
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/Link'
+                      - readOnly: true
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to the node set containing all child nodes (immediate descendants).
@@ -684,6 +686,10 @@ components:
               description: Embedded entities related to the phylogenetic node. See `_links` for more information.
               properties:
                 ancestor_nodes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Node'
+                child_nodes:
                   type: array
                   items:
                     $ref: '#/components/schemas/Node'
