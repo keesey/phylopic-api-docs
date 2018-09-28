@@ -1169,6 +1169,8 @@ paths:
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
           content:
             application/vnd.phylopic.v2+json:
               schema:
