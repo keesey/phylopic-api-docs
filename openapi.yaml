@@ -526,6 +526,8 @@ components:
     Link:
       description: A basic link.
       type: object
+      required:
+        - href
       properties:
         href:
           format: url
@@ -536,6 +538,10 @@ components:
         - $ref: '#/components/schemas/Link'
         - type: object
           description: A link to an image file.
+          required:
+            - href
+            - sizes
+            - type
           properties:
             href:
               example: '/path/123e4567-e89b-12d3-a456-426655440000/raster32.png'
@@ -586,11 +592,6 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - readOnly: true
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: Link to the node set containing all child nodes (immediate descendants).
-                      nullable: true
-                      readOnly: true
                 descendant_image_set:
                   allOf:
                     - $ref: '#/components/schemas/Link'
@@ -631,6 +632,29 @@ components:
             root:
               description: A flag that, if `true`, indicates that this is a root node and should not have a parent.
               type: boolean
+    NodeChoices:
+      type: object
+      description: A list of matching nodes.
+      required:
+        - _embedded
+        - _links
+      properties:
+        _embedded:
+          type: object
+          required:
+            - choices
+          properties:
+            choices:
+              type: array
+              items:
+                $ref: '#/components/schemas/Node'
+        _links:
+          type: object
+          required:
+            - self
+          properties:
+            self:
+              $ref: '#/components/schemas/Link'
     NodeName:
       description: A taxonomic name, associated with a phylogenetic node.
       type: array
@@ -708,6 +732,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/Link'
         - type: object
+          required:
+            - title
           properties:
             title:
               type: string
@@ -1138,6 +1164,15 @@ paths:
             type: string
           example: http://eol.org/328046
       responses:
+        '300':
+          description: Several possible matches were found.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/NodeChoices'
         '307':
           description: A corresponding or ancestral node was found.
           headers:
