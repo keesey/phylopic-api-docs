@@ -7,6 +7,9 @@
     "url": "https://github.com/keesey/phylopic-api-docs/issues"
   },
   "description": "Documentation for PhyloPic's Application Programming Interface",
+  "devDependencies": {
+    "swagger-cli": "^2.1.1"
+  },
   "homepage": "https://github.com/keesey/phylopic-api-docs#readme",
   "keywords": [
     "api",
@@ -24,8 +27,5 @@
   "scripts": {
     "test": "swagger-cli validate ./openapi.yaml"
   },
-  "version": "2.0.0-alpha",
-  "devDependencies": {
-    "swagger-cli": "^2.1.1"
-  }
+  "version": "2.0.0-alpha"
 }
