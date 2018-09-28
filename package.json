@@ -1,0 +1,31 @@
+{
+  "author": {
+    "email": "keesey+phylopic@gmail.com",
+    "name": "T. Michael Keesey"
+  },
+  "bugs": {
+    "url": "https://github.com/keesey/phylopic-api-docs/issues"
+  },
+  "description": "Documentation for PhyloPic's Application Programming Interface",
+  "homepage": "https://github.com/keesey/phylopic-api-docs#readme",
+  "keywords": [
+    "api",
+    "open",
+    "phylopic",
+    "swagger"
+  ],
+  "license": "CC0-1.0",
+  "name": "phylopic-api-docs",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keesey/phylopic-api-docs.git"
+  },
+  "scripts": {
+    "test": "swagger-cli validate ./openapi.yaml"
+  },
+  "version": "2.0.0-alpha",
+  "devDependencies": {
+    "swagger-cli": "^2.1.1"
+  }
+}
