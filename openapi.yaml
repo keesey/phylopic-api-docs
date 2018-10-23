@@ -39,8 +39,10 @@ components:
     Accept:
       name: Accept
       in: header
-      required: true
-      description: The MIME type for the response, including API version. Must include `application/vnd.phylopic.v2+json`.
+      description: |
+        The MIME type for the response, including API version. Must include `application/vnd.phylopic.v2+json`.
+
+        If omitted, `*` (a wildcard matching all types) is assumed.
       schema:
         format: mimetype
         type: string
