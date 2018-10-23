@@ -836,7 +836,6 @@ paths:
       summary: Submits an image file for processing and addition.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/embed-Image'
       requestBody:
         required: true
         content:
@@ -871,7 +870,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                $ref: '#/components/schemas/ImageWithEmbedded'
+                $ref: '#/components/schemas/Image'
         '303':
           description: The submission was already made.
           headers:
@@ -928,7 +927,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
-        - $ref: '#/components/parameters/embed-Image'
       requestBody:
         required: true
         content:
@@ -945,7 +943,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                $ref: '#/components/schemas/ImageWithEmbedded'
+                $ref: '#/components/schemas/Image'
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -963,7 +961,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
-        - $ref: '#/components/parameters/embed-Image'
       requestBody:
         required: true
         content:
@@ -986,7 +983,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                $ref: '#/components/schemas/ImageWithEmbedded'
+                $ref: '#/components/schemas/Image'
         '303':
           description: The file was already uploaded for another image.
           headers:
@@ -1217,7 +1214,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
-        - $ref: '#/components/parameters/embed-Node'
       requestBody:
         required: true
         content:
@@ -1234,7 +1230,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                $ref: '#/components/schemas/NodeWithEmbedded'
+                $ref: '#/components/schemas/Node'
         '400':
           $ref: '#/components/responses/400'
         '401':
