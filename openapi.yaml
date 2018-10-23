@@ -107,15 +107,6 @@ components:
         type: string
         example: '123e4567-e89b-12d3-a456-426655440000'
   responses:
-    '202':
-      description: The request has been accepted but is still being processed.
-      headers:
-        Content-Type:
-          $ref: '#/components/headers/Content-Type'
-      content:
-        application/vnd.phylopic.v2+json:
-          schema:
-            $ref: '#/components/schemas/EntityReference'
     '204':
       description: The request completed successfully. No further information is provided.
     '302':
@@ -845,6 +836,7 @@ paths:
       summary: Submits an image file for processing and addition.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/embed-Image'
       requestBody:
         required: true
         content:
@@ -870,8 +862,16 @@ paths:
                   type: string
                   example: '123e4567-e89b-12d3-a456-426655440000'
       responses:
-        '202':
-          $ref: '#/components/responses/202'
+        '201':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/ImageWithEmbedded'
         '303':
           description: The submission was already made.
           headers:
@@ -963,6 +963,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
+        - $ref: '#/components/parameters/embed-Image'
       requestBody:
         required: true
         content:
@@ -976,8 +977,16 @@ paths:
                   format: binary
                   type: string
       responses:
-        '202':
-          $ref: '#/components/responses/202'
+        '200':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/ImageWithEmbedded'
         '303':
           description: The file was already uploaded for another image.
           headers:
