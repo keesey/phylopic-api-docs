@@ -877,95 +877,6 @@ paths:
           $ref: '#/components/responses/401'
       security:
         - Member: []
-  /images/sets:
-    post:
-      summary: Creates or retrieves a set of images.
-      requestBody:
-        required: true
-        content:
-          application/vnd.phylopic.v2+json:
-            schema:
-              $ref: '#/components/schemas/UUIDList'
-      responses:
-        '302':
-          $ref: '#/components/responses/302'
-        '400':
-          $ref: '#/components/responses/400'
-  /images/sets/{uuid}:
-    get:
-      summary: Returns a specific set of images.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Range'
-        - $ref: '#/components/parameters/uuid-Entity'
-        - $ref: '#/components/parameters/embed-Image'
-        - name: created<
-          in: query
-          required: false
-          description: Limits results to entries created on or before this time.
-          schema:
-            format: date-time
-            type: string
-        - name: created>
-          in: query
-          required: false
-          description: Limits results to entries created on or after this time.
-          schema:
-            format: date-time
-            type: string
-        - name: license_components
-          in: query
-          required: false
-          description: |
-            Limits entries to those with or without certain license components.
-
-            Components are represented as a space-separated list. May include:
-            - `by` (Attribution)
-            - `nc` (Noncommercial)
-            - `sa` (Standalone)
-
-            Any of these may be prepended by `-` to indicate that only images under licenses **without** that component should be returned.
-
-            Examples:
-            - `by`: only include images with licenses that require attribution.
-            - `-by`: exclude all images with licenses that require attribution.
-            - `-by -nc -sa`: only include images in the public domain (having none of the license components).
-          schema:
-            format: '^(\-?(by|nc|sa) )*(\-?(by|nc|sa))$'
-            type: string
-        - name: modified<
-          in: query
-          required: false
-          description: Limits results to entries modified on or before this time.
-          schema:
-            format: date-time
-            type: string
-        - name: modified>
-          in: query
-          required: false
-          description: Limits results to entries modified on or after this time.
-          schema:
-            format: date-time
-            type: string
-        - name: sort
-          in: query
-          required: false
-          description: |
-            A space-separated list of fields to sort by. May include:
-            - `created`
-            - `modified`
-
-            Either of these may be prepended by `-` to indicate descending order. The default value is `-modified`.
-          schema:
-            pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
-            type: string
-      responses:
-        '206':
-          $ref: '#/components/responses/list-Image'
-        '400':
-          $ref: '#/components/responses/400'
-        '416':
-          $ref: '#/components/responses/416'
   /images/{uuid}:
     delete:
       summary: Removes a specific image.
@@ -1071,6 +982,95 @@ paths:
           $ref: '#/components/responses/410'
       security:
         - Member: []
+  /imagesets:
+    post:
+      summary: Creates or retrieves a set of images.
+      requestBody:
+        required: true
+        content:
+          application/vnd.phylopic.v2+json:
+            schema:
+              $ref: '#/components/schemas/UUIDList'
+      responses:
+        '302':
+          $ref: '#/components/responses/302'
+        '400':
+          $ref: '#/components/responses/400'
+  /imagesets/{uuid}:
+    get:
+      summary: Returns a specific set of images.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/uuid-Entity'
+        - $ref: '#/components/parameters/embed-Image'
+        - name: created<
+          in: query
+          required: false
+          description: Limits results to entries created on or before this time.
+          schema:
+            format: date-time
+            type: string
+        - name: created>
+          in: query
+          required: false
+          description: Limits results to entries created on or after this time.
+          schema:
+            format: date-time
+            type: string
+        - name: license_components
+          in: query
+          required: false
+          description: |
+            Limits entries to those with or without certain license components.
+
+            Components are represented as a space-separated list. May include:
+            - `by` (Attribution)
+            - `nc` (Noncommercial)
+            - `sa` (Standalone)
+
+            Any of these may be prepended by `-` to indicate that only images under licenses **without** that component should be returned.
+
+            Examples:
+            - `by`: only include images with licenses that require attribution.
+            - `-by`: exclude all images with licenses that require attribution.
+            - `-by -nc -sa`: only include images in the public domain (having none of the license components).
+          schema:
+            format: '^(\-?(by|nc|sa) )*(\-?(by|nc|sa))$'
+            type: string
+        - name: modified<
+          in: query
+          required: false
+          description: Limits results to entries modified on or before this time.
+          schema:
+            format: date-time
+            type: string
+        - name: modified>
+          in: query
+          required: false
+          description: Limits results to entries modified on or after this time.
+          schema:
+            format: date-time
+            type: string
+        - name: sort
+          in: query
+          required: false
+          description: |
+            A space-separated list of fields to sort by. May include:
+            - `created`
+            - `modified`
+
+            Either of these may be prepended by `-` to indicate descending order. The default value is `-modified`.
+          schema:
+            pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
+            type: string
+      responses:
+        '206':
+          $ref: '#/components/responses/list-Image'
+        '400':
+          $ref: '#/components/responses/400'
+        '416':
+          $ref: '#/components/responses/416'
   /licenses:
     get:
       summary: Returns a list of licenses.
@@ -1150,136 +1150,6 @@ paths:
           $ref: '#/components/responses/401'
       security:
         - Member: []
-  /nodes/resolve/{uri}:
-    get:
-      summary: Resolves an external URI to the closest phylogenetic node.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - name: uri
-          in: path
-          required: true
-          description: The URI of the external resource.
-          schema:
-            format: uri
-            type: string
-          example: http://eol.org/328046
-      responses:
-        '300':
-          description: Several possible matches were found.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/NodeChoices'
-        '307':
-          description: A corresponding or ancestral node was found.
-          headers:
-            Location:
-              $ref: '#/components/headers/Location'
-        '400':
-          $ref: '#/components/responses/400'
-        '404':
-          $ref: '#/components/responses/404'
-  /nodes/search:
-    get:
-      summary: Returns an embedded list of references to nodes whose names match a search string.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Range'
-        - name: query
-          in: query
-          required: true
-          description: The text to search for. Must be at least two characters, trimmed of whitespace.
-          schema:
-            type: string
-            example: Homo sapiens
-      responses:
-        '206':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) description of search results.
-          headers:
-            Accept-Ranges:
-              $ref: '#/components/headers/Accept-Ranges'
-            Content-Range:
-              $ref: '#/components/headers/Content-Range'
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                type: object
-                required:
-                  - _embedded
-                  - _links
-                  - query
-                properties:
-                  _embedded:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/NodeReference'
-                  _links:
-                    type: object
-                    required:
-                      - self
-                    properties:
-                      self:
-                        $ref: '#/components/schemas/Link'
-                  query:
-                    type: string
-                    example: Homo sapiens
-        '400':
-          $ref: '#/components/responses/400'
-        '416':
-          $ref: '#/components/responses/416'
-  /nodes/sets:
-    post:
-      summary: Creates or retrieves a set of phylogenetic nodes.
-      requestBody:
-        required: true
-        content:
-          application/vnd.phylopic.v2+json:
-            schema:
-              $ref: '#/components/schemas/UUIDList'
-      responses:
-        '302':
-          $ref: '#/components/responses/302'
-        '400':
-          $ref: '#/components/responses/400'
-  /nodes/sets/{uuid}:
-    get:
-      summary: Returns a specific set of phylogenetic nodes.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Range'
-        - $ref: '#/components/parameters/uuid-Entity'
-        - $ref: '#/components/parameters/embed-Node'
-        - name: sort
-          in: query
-          required: false
-          description: |
-            A space-separated list of fields to sort by. May include:
-            - `created`
-            - `modified`
-            - `names`
-
-            Any of these may be prepended by `-` to indicate descending order. The default value is `names`.
-          schema:
-            pattern: '^(\-?(created|modified|names) )*(\-?(created|modified|names))$'
-            type: string
-      responses:
-        '206':
-          $ref: '#/components/responses/list-Node'
-        '400':
-          $ref: '#/components/responses/400'
-        '416':
-          $ref: '#/components/responses/416'
   /nodes/{uuid}:
     delete:
       summary: Removes a specific phylogenetic node.
@@ -1346,9 +1216,139 @@ paths:
           $ref: '#/components/responses/410'
       security:
         - Member: []
+  /nodesets:
+    post:
+      summary: Creates or retrieves a set of phylogenetic nodes.
+      requestBody:
+        required: true
+        content:
+          application/vnd.phylopic.v2+json:
+            schema:
+              $ref: '#/components/schemas/UUIDList'
+      responses:
+        '302':
+          $ref: '#/components/responses/302'
+        '400':
+          $ref: '#/components/responses/400'
+  /nodesets/{uuid}:
+    get:
+      summary: Returns a specific set of phylogenetic nodes.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/uuid-Entity'
+        - $ref: '#/components/parameters/embed-Node'
+        - name: sort
+          in: query
+          required: false
+          description: |
+            A space-separated list of fields to sort by. May include:
+            - `created`
+            - `modified`
+            - `names`
+
+            Any of these may be prepended by `-` to indicate descending order. The default value is `names`.
+          schema:
+            pattern: '^(\-?(created|modified|names) )*(\-?(created|modified|names))$'
+            type: string
+      responses:
+        '206':
+          $ref: '#/components/responses/list-Node'
+        '400':
+          $ref: '#/components/responses/400'
+        '416':
+          $ref: '#/components/responses/416'
   /ping:
     get:
       summary: Checks if the API is operational.
       responses:
         '204':
           $ref: '#/components/responses/204'
+  /resolve/{uri}:
+    get:
+      summary: Resolves an external URI to the closest phylogenetic node.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - name: uri
+          in: path
+          required: true
+          description: The URI of the external resource.
+          schema:
+            format: uri
+            type: string
+          example: http://eol.org/328046
+      responses:
+        '300':
+          description: Several possible matches were found.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/NodeChoices'
+        '307':
+          description: A corresponding or ancestral node was found.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+  /search/nodes:
+    get:
+      summary: Returns an embedded list of references to nodes whose names match a search string.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+        - name: query
+          in: query
+          required: true
+          description: The text to search for. Must be at least two characters, trimmed of whitespace.
+          schema:
+            type: string
+            example: Homo sapiens
+      responses:
+        '206':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) description of search results.
+          headers:
+            Accept-Ranges:
+              $ref: '#/components/headers/Accept-Ranges'
+            Content-Range:
+              $ref: '#/components/headers/Content-Range'
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                type: object
+                required:
+                  - _embedded
+                  - _links
+                  - query
+                properties:
+                  _embedded:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/NodeReference'
+                  _links:
+                    type: object
+                    required:
+                      - self
+                    properties:
+                      self:
+                        $ref: '#/components/schemas/Link'
+                  query:
+                    type: string
+                    example: Homo sapiens
+        '400':
+          $ref: '#/components/responses/400'
+        '416':
+          $ref: '#/components/responses/416'
