@@ -115,7 +115,7 @@ components:
           schema:
             $ref: '#/components/schemas/EntityReference'
     '204':
-      description: The request completed successfuly. No further information is provided.
+      description: The request completed successfully. No further information is provided.
     '302':
       description: The requested resource has been found at another location.
       headers:
@@ -863,6 +863,10 @@ paths:
                   format: url
                   type: string
                   example: 'https://creativecommons.org/publicdomain/zero/1.0/'
+                uuid:
+                  format: uuid
+                  type: string
+                  example: '123e4567-e89b-12d3-a456-426655440000'
       responses:
         '202':
           $ref: '#/components/responses/202'
@@ -884,8 +888,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
       responses:
-        '202':
-          $ref: '#/components/responses/202'
+        '204':
+          $ref: '#/components/responses/204'
         '401':
           $ref: '#/components/responses/401'
         '403':
@@ -913,8 +917,6 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/ImageWithEmbedded'
-        '204':
-          $ref: '#/components/responses/204'
         '404':
           $ref: '#/components/responses/404'
         '410':
@@ -924,6 +926,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
+        - $ref: '#/components/parameters/embed-Image'
       requestBody:
         required: true
         content:
@@ -931,8 +934,16 @@ paths:
             schema:
               $ref: '#/components/schemas/Image'
       responses:
-        '202':
-          $ref: '#/components/responses/202'
+        '200':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/ImageWithEmbedded'
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -1157,8 +1168,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
       responses:
-        '202':
-          $ref: '#/components/responses/202'
+        '204':
+          $ref: '#/components/responses/204'
         '401':
           $ref: '#/components/responses/401'
         '403':
@@ -1195,6 +1206,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
+        - $ref: '#/components/parameters/embed-Node'
       requestBody:
         required: true
         content:
@@ -1202,8 +1214,16 @@ paths:
             schema:
               $ref: '#/components/schemas/Node'
       responses:
-        '202':
-          $ref: '#/components/responses/202'
+        '200':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/NodeWithEmbedded'
         '400':
           $ref: '#/components/responses/400'
         '401':
