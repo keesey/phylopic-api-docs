@@ -826,7 +826,7 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               required:
@@ -960,7 +960,7 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               required:
