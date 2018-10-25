@@ -87,7 +87,6 @@ components:
       in: query
       description: |
         A space-separated list of related entities to embed. May include:
-        - `ancestor_nodes`
         - `child_nodes`
         - `parent_node`
         - `primary_image`
@@ -95,7 +94,7 @@ components:
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((ancestor_nodes|child_nodes|parent_node|primary_image|submitter) )*(ancestor_nodes|child_nodes|parent_node|primary_image|submitter)$'
+        pattern: '^((child_nodes|parent_node|primary_image|submitter) )*(child_nodes|parent_node|primary_image|submitter)$'
         type: string
     uuid-Entity:
       name: uuid
@@ -559,7 +558,6 @@ components:
             _links:
               type: object
               required:
-                - ancestor_nodes
                 - child_nodes
                 - descendant_image_set
                 - external
@@ -569,13 +567,6 @@ components:
                 - self_image_set
                 - submitter
               properties:
-                ancestor_nodes:
-                  type: array
-                  description: Links to all ancestral nodes, starting with the parent and ending with the root.
-                  items:
-                    allOf:
-                      - $ref: '#/components/schemas/Link'
-                      - readOnly: true
                 child_nodes:
                   type: array
                   description: |
@@ -702,10 +693,6 @@ components:
               type: object
               description: Embedded entities related to the phylogenetic node. See `_links` for more information.
               properties:
-                ancestor_nodes:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Node'
                 child_nodes:
                   type: array
                   items:
