@@ -831,7 +831,8 @@ paths:
               type: object
               required:
                 - file
-                - license
+                - license_url
+                - specific_node_uuid
               properties:
                 attribution:
                   type: string
@@ -839,10 +840,18 @@ paths:
                 file:
                   format: binary
                   type: string
-                license:
+                general_node_uuid:
+                  format: uuid
+                  type: string
+                  example: '123e4567-e89b-12d3-a456-426655440000'
+                license_url:
                   format: url
                   type: string
                   example: 'https://creativecommons.org/publicdomain/zero/1.0/'
+                specific_node_uuid:
+                  format: uuid
+                  type: string
+                  example: '123e4567-e89b-12d3-a456-426655440000'
                 uuid:
                   format: uuid
                   type: string
