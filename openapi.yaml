@@ -419,6 +419,7 @@ components:
             attribution:
               type: string
               example: 'Charles Knight'
+              nullable: true
             _links:
               type: object
               required:
@@ -491,6 +492,31 @@ components:
                     - description: A link to a vector image file (SVG format).
                       readOnly: true
                       nullable: true
+    ImagePatch:
+      allOf:
+        - description: Updates for an image.
+          type: object
+          properties:
+            attribution:
+              type: string
+              example: 'Charles Knight'
+              nullable: true
+            _links:
+              type: object
+              properties:
+                general_node:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specific_node` or a node indicating a common ancestor with `specific_node`.
+                      nullable: true
+                license:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the license that this image is under.
+                specific_node:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the node indicating the specific taxon that this image illustrates.
     ImageWithEmbedded:
       description: Resource for a submitted image.
       required:
@@ -928,7 +954,7 @@ paths:
         content:
           application/vnd.phylopic.v2+json:
             schema:
-              $ref: '#/components/schemas/Image'
+              $ref: '#/components/schemas/ImagePatch'
       responses:
         '200':
           description: |
