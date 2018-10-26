@@ -42,7 +42,7 @@ components:
       description: |
         The MIME type for the response, including API version. Must allow `application/vnd.phylopic.v2+json`.
 
-        If omitted, `*` (a wildcard allowing all types) is assumed.
+        If omitted, `*` (a wildcard allowing all types) is assumed, and the response's `Content-Type` header will be `application/vnd.phylopic.v2+json`.
       schema:
         format: mimetype
         type: string
@@ -516,6 +516,35 @@ components:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the node indicating the specific taxon that this image illustrates.
+    ImagePost:
+      description: Data for creating a new image.
+      required:
+        - _links
+      type: object
+      properties:
+        attribution:
+          type: string
+          example: 'Charles Knight'
+          nullable: true
+        _links:
+          type: object
+          required:
+            - license
+            - specific_node
+          properties:
+            general_node:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specific_node` or a node indicating a common ancestor with `specific_node`.
+                  nullable: true
+            license:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: A link to the license that this image is under.
+            specific_node:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: A link to the node indicating the specific taxon that this image illustrates.
     ImageWithEmbedded:
       description: Resource for a submitted image.
       required:
@@ -706,6 +735,33 @@ components:
         root:
           description: A flag that, if `true`, indicates that this is a root node and should not have a parent.
           type: boolean
+    NodePost:
+      description: Data for creating a phylogenetic node.
+      type: object
+      required:
+        - _links
+        - names
+      properties:
+        _links:
+          type: object
+          required:
+            - parent_node
+          properties:
+            external:
+              type: array
+              description: Links to the same node under other domains (for example, Encyclopedia of Life).
+              items:
+                $ref: '#/components/schemas/Link'
+            parent_node:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: Link to the parent node (immediate ancestor).
+                  nullable: true
+        names:
+          type: array
+          description: A list of all of this node's names, starting with the preferred name.
+          items:
+            $ref: '#/components/schemas/NodeName'
     NodeReference:
       description: A reference to a phylogenetic node.
       required:
@@ -1196,7 +1252,7 @@ paths:
         content:
           application/vnd.phylopic.v2+json:
             schema:
-              $ref: '#/components/schemas/Node'
+              $ref: '#/components/schemas/NodePost'
       responses:
         '201':
           description: The node has been created.
@@ -1287,6 +1343,48 @@ paths:
           $ref: '#/components/responses/404'
         '410':
           $ref: '#/components/responses/410'
+      security:
+        - Member: []
+    post:
+      summary: Creates a new phylogenetic node for the specified UUID.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          application/vnd.phylopic.v2+json:
+            schema:
+              $ref: '#/components/schemas/NodePost'
+      responses:
+        '201':
+          description: The node has been created.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Node'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '409':
+          description: |
+            A node was already created for the specified UUID.
+
+            (This likely means `PATCH` should have been used instead.)
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Node'
       security:
         - Member: []
   /nodesets:
