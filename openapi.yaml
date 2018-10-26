@@ -493,30 +493,29 @@ components:
                       readOnly: true
                       nullable: true
     ImagePatch:
-      allOf:
-        - description: Updates for an image.
+      description: Updates for an image.
+      type: object
+      properties:
+        attribution:
+          type: string
+          example: 'Charles Knight'
+          nullable: true
+        _links:
           type: object
           properties:
-            attribution:
-              type: string
-              example: 'Charles Knight'
-              nullable: true
-            _links:
-              type: object
-              properties:
-                general_node:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specific_node` or a node indicating a common ancestor with `specific_node`.
-                      nullable: true
-                license:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: A link to the license that this image is under.
-                specific_node:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: A link to the node indicating the specific taxon that this image illustrates.
+            general_node:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specific_node` or a node indicating a common ancestor with `specific_node`.
+                  nullable: true
+            license:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: A link to the license that this image is under.
+            specific_node:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: A link to the node indicating the specific taxon that this image illustrates.
     ImageWithEmbedded:
       description: Resource for a submitted image.
       required:
@@ -682,6 +681,31 @@ components:
             format: '^\S+( \S+)*$'
             type: string
             example: Homo sapiens
+    NodePatch:
+      description: Update for a phylogenetic node.
+      type: object
+      properties:
+        _links:
+          type: object
+          properties:
+            external:
+              type: array
+              description: Links to the same node under other domains (for example, Encyclopedia of Life).
+              items:
+                $ref: '#/components/schemas/Link'
+            parent_node:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: Link to the parent node (immediate ancestor).
+                  nullable: true
+        names:
+          type: array
+          description: A list of all of this node's names, starting with the preferred name.
+          items:
+            $ref: '#/components/schemas/NodeName'
+        root:
+          description: A flag that, if `true`, indicates that this is a root node and should not have a parent.
+          type: boolean
     NodeReference:
       description: A reference to a phylogenetic node.
       required:
@@ -1241,7 +1265,7 @@ paths:
         content:
           application/vnd.phylopic.v2+json:
             schema:
-              $ref: '#/components/schemas/Node'
+              $ref: '#/components/schemas/NodePatch'
       responses:
         '200':
           description: |
