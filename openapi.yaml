@@ -106,6 +106,8 @@ components:
         type: string
         example: '123e4567-e89b-12d3-a456-426655440000'
   responses:
+    '202':
+      description: The request was accepted, but there is nothing to return yet. There may be at a later time.
     '204':
       description: The request completed successfully. No further information is provided.
     '302':
@@ -174,8 +176,26 @@ components:
         application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
+    '406':
+      description: The request cannot be accepted because the `Accept` header does not allow an available type of content.
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
     '410':
       description: The resource has been removed.
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    '413':
+      description: The payload is too large.
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
@@ -888,6 +908,8 @@ paths:
                     pattern: '^\d+\.\d+\.\d+(-(alpha|beta|rc)(\.\d+)?)?'
                     type: string
                     example: 2.0.0-alpha
+        '406':
+          $ref: '#/components/responses/406'
   /accounts/{uuid}:
     get:
       summary: Returns a specific user account.
@@ -907,8 +929,182 @@ paths:
                 $ref: '#/components/schemas/Account'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+  /imagefiles:
+    post:
+      summary: |
+        Uploads an image file and creates a new image entry.
+
+        The image entry should be created (using `POST /images/{uuid}`) shortly afterward. If not, the file will be deleted from the server eventually.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+      requestBody:
+        required: true
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '303':
+          description: The file was already uploaded for another image.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '406':
+          $ref: '#/components/responses/406'
+        '413':
+          $ref: '#/components/responses/413'
+      security:
+        - Member: []
+  /imagefiles/{uuid}:
+    get:
+      summary: Retrieves an image file.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          description: |
+            The MIME type for the response, including API version. Must allow `image/png` and, if the `variant` parameter is absent, `image/svg+xml`.
+
+            If omitted, `*` (a wildcard allowing all types) is assumed.
+          schema:
+            format: mimetype
+            type: string
+          example: image/png; image/svg+xml
+        - name: download
+          in: query
+          required: false
+          description: Indicates that the file is being downloaded instead of being displayed inline and therefore `Content-Disposition` should be set to `attachment`.
+        - name: variant
+          in: query
+          required: false
+          description: |
+            Specifies a particular version of the image to retrieve.
+
+            If omitted, the original image is downloaded. This may be a vector file (`image/svg+xml`) or a raster file (`image/png`).
+
+            If present, this will always yield a raster file (`image/png`). The value must be one of the following:
+            * `http://ogp.me/ns#image` - opaque OpenGraph (Facebook post) image with margins (1200×630px)
+            * `icon` - colored icon file (32×32px)
+            * `raster` - trimmed black image with alpha channel (size depends on original)
+            * `raster1024` - trimmed black image with alpha channel (1024px in one dimension, <=1024px in the other)
+            * `raster256` - trimmed black image with alpha channel (256px in one dimension, <=256px in the other)
+            * `raster64` - trimmed black image with alpha channel (64px in one dimension, <=64px in the other)
+            * `thumbnail` - black image with alpha channel (64×64px)
+            * `twitter:image` - opaque Twitter image with margins (440×220px)
+          schema:
+            type: string
+          example: thumbnail
+      responses:
+        '200':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Disposition:
+              description: Tells whether the download is inline or as an attachment. If the latter, provides a detailed filename.
+              example: attachment; filename="Homo-sapiens_Leonardo-da-Vinci_public-domain_thumbnail.png"
+              schema:
+                type: string
+          content:
+            image/png:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '202':
+          $ref: '#/components/responses/202'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+    put:
+      summary: |
+        Uploads an image file.
+
+        This either specifies the UUID for a enw image or updates an existing image.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
+      requestBody:
+        required: true
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: |
+            The upload was successful, and created a new image.
+            
+            This image will not be on the site until a record is created for it (`POST /images/{uuid}`).
+            If it is not created in a timely manner, this image file may be deleted.
+
+            The content is a provisional [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '201':
+          description: |
+            The upload was successful, and created a new image.
+
+            The content is a [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '303':
+          description: The file was already uploaded for another image.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+      security:
+        - Member: []
   /images:
     get:
       summary: Returns links to resources for images.
@@ -925,65 +1121,6 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/Domain'
-    post:
-      summary: Submits an image file for processing and addition.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - file
-                - license_url
-                - specific_node_uuid
-              properties:
-                attribution:
-                  type: string
-                  example: 'Charles Knight'
-                file:
-                  format: binary
-                  type: string
-                general_node_uuid:
-                  format: uuid
-                  type: string
-                  example: '123e4567-e89b-12d3-a456-426655440000'
-                license_url:
-                  format: url
-                  type: string
-                  example: 'https://creativecommons.org/publicdomain/zero/1.0/'
-                specific_node_uuid:
-                  format: uuid
-                  type: string
-                  example: '123e4567-e89b-12d3-a456-426655440000'
-                uuid:
-                  format: uuid
-                  type: string
-                  example: '123e4567-e89b-12d3-a456-426655440000'
-      responses:
-        '201':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/Image'
-        '303':
-          description: The submission was already made.
-          headers:
-            Location:
-              $ref: '#/components/headers/Location'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-      security:
-        - Member: []
   /images/{uuid}:
     delete:
       summary: Removes a specific image.
@@ -999,6 +1136,8 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
       security:
@@ -1022,6 +1161,8 @@ paths:
                 $ref: '#/components/schemas/ImageWithEmbedded'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
     patch:
@@ -1054,29 +1195,24 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
       security:
         - Member: []
     post:
-      summary: Updates a specific image's file.
+      summary: Adds a new image entry after the file has been uploaded.
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          application/vnd.phylopic.v2+json:
             schema:
-              type: object
-              required:
-                - file
-              properties:
-                file:
-                  format: binary
-                  type: string
+              $ref: '#/components/schemas/ImagePost'
       responses:
-        '200':
+        '201':
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
@@ -1086,11 +1222,6 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/Image'
-        '303':
-          description: The file was already uploaded for another image.
-          headers:
-            Location:
-              $ref: '#/components/headers/Location'
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -1099,6 +1230,15 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
+        '409':
+          allOf:
+            - $ref: '#/components/responses/409'
+            - content:
+              application/vnd.phylopic.v2+json:
+                schema:
+                  $ref: '#/components/schemas/Image'
         '410':
           $ref: '#/components/responses/410'
       security:
@@ -1190,6 +1330,8 @@ paths:
           $ref: '#/components/responses/list-Image'
         '400':
           $ref: '#/components/responses/400'
+        '406':
+          $ref: '#/components/responses/406'
         '416':
           $ref: '#/components/responses/416'
   /licenses:
@@ -1243,6 +1385,8 @@ paths:
                         properties:
                           search:
                             $ref: '#/components/schemas/Link'
+        '406':
+          $ref: '#/components/responses/406'
     post:
       summary: Creates a new phylogenetic node.
       parameters:
@@ -1269,6 +1413,8 @@ paths:
           $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
+        '406':
+          $ref: '#/components/responses/406'
       security:
         - Member: []
   /nodes/{uuid}:
@@ -1286,6 +1432,8 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
       security:
@@ -1309,6 +1457,8 @@ paths:
                 $ref: '#/components/schemas/NodeWithEmbedded'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
     patch:
@@ -1341,6 +1491,8 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
       security:
@@ -1371,9 +1523,11 @@ paths:
           $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
+        '406':
+          $ref: '#/components/responses/406'
         '409':
           description: |
-            A node was already created for the specified UUID.
+            An entity was already created for the specified UUID.
 
             (This likely means `PATCH` should have been used instead.)
           headers:
@@ -1381,10 +1535,6 @@ paths:
               $ref: '#/components/headers/Content-Type'
             Location:
               $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/Node'
       security:
         - Member: []
   /nodesets:
@@ -1427,6 +1577,8 @@ paths:
           $ref: '#/components/responses/list-Node'
         '400':
           $ref: '#/components/responses/400'
+        '406':
+          $ref: '#/components/responses/406'
         '416':
           $ref: '#/components/responses/416'
   /ping:
@@ -1469,6 +1621,8 @@ paths:
           $ref: '#/components/responses/400'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
   /search/nodes:
     get:
       summary: Returns an embedded list of references to nodes whose names match a search string.
@@ -1521,5 +1675,7 @@ paths:
                     example: Homo sapiens
         '400':
           $ref: '#/components/responses/400'
+        '406':
+          $ref: '#/components/responses/406'
         '416':
           $ref: '#/components/responses/416'
