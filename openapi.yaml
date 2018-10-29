@@ -185,6 +185,15 @@ components:
         application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
+    '409':
+      description: The request could not be completed because the entity is not in a finalized state. 
+      headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
     '410':
       description: The resource has been removed.
       headers:
@@ -1138,6 +1147,8 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
+        '409':
+          $ref: '#/components/responses/409'
         '410':
           $ref: '#/components/responses/410'
       security:
@@ -1163,6 +1174,8 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
+        '409':
+          $ref: '#/components/responses/409'
         '410':
           $ref: '#/components/responses/410'
     patch:
@@ -1197,6 +1210,8 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
+        '409':
+          $ref: '#/components/responses/409'
         '410':
           $ref: '#/components/responses/410'
       security:
@@ -1232,13 +1247,6 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
-        '409':
-          allOf:
-            - $ref: '#/components/responses/409'
-            - content:
-              application/vnd.phylopic.v2+json:
-                schema:
-                  $ref: '#/components/schemas/Image'
         '410':
           $ref: '#/components/responses/410'
       security:
