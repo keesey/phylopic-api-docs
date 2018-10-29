@@ -1006,6 +1006,8 @@ paths:
           in: query
           required: false
           description: Indicates that the file is being downloaded instead of being displayed inline and therefore `Content-Disposition` should be set to `attachment`.
+          schema:
+            type: null
         - name: variant
           in: query
           required: false
