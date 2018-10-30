@@ -450,77 +450,79 @@ components:
               example: 'Charles Knight'
               nullable: true
             _links:
-              type: object
-              required:
-                - generalNode
-                - http://ogp.me/ns#image
-                - iconFile
-                - license
-                - rasterFiles
-                - self
-                - specificNode
-                - submitter
-                - nodes
-                - thumbnailFile
-                - twitter:image
-                - vectorFile
-              properties:
-                generalNode:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specificNode` or a node indicating a common ancestor with `specificNode`.
-                      nullable: true
-                'http://ogp.me/ns#image':
-                  allOf:
-                    - $ref: '#/components/schemas/MediaLink'
-                    - description: A link to an image for use with Open Graph (PNG format).
-                      readOnly: true
-                iconFile:
-                  allOf:
-                    - $ref: '#/components/schemas/MediaLink'
-                    - description: A link to an icon-style image (PNG format).
-                      readOnly: true
-                license:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: A link to the license that this image is under.
-                rasterFiles:
-                  type: array
-                  description: A list of links to raster image files (PNG format) of various sizes.
-                  readOnly: true
-                  items:
-                    $ref: '#/components/schemas/MediaLink'
-                specificNode:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: A link to the node indicating the specific taxon that this image illustrates.
-                submitter:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: A link to the account of the user who submitted this image.
-                      readOnly: true
-                nodes:
-                  type: array
-                  description: Links to all nodes that this image illustrates, based on `specificNode` and (if provided) `generalNode`.
-                  readOnly: true
-                  items:
-                    $ref: '#/components/schemas/Link'
-                thumbnailFile:
-                  allOf:
-                    - $ref: '#/components/schemas/MediaLink'
-                    - description: A link to a thumbnail image (PNG format).
-                      readOnly: true
-                'twitter:image':
-                  allOf:
-                    - $ref: '#/components/schemas/MediaLink'
-                    - description: A link to an image for use with Twitter (PNG format).
-                      readOnly: true
-                vectorFile:
-                  allOf:
-                    - $ref: '#/components/schemas/MediaLink'
-                    - description: A link to a vector image file (SVG format).
-                      readOnly: true
-                      nullable: true
+              $ref: '#/components/schemas/ImageLinks'
+    ImageLinks:
+      type: object
+      required:
+        - generalNode
+        - http://ogp.me/ns#image
+        - iconFile
+        - license
+        - rasterFiles
+        - self
+        - specificNode
+        - submitter
+        - nodes
+        - thumbnailFile
+        - twitter:image
+        - vectorFile
+      properties:
+        generalNode:
+          allOf:
+            - $ref: '#/components/schemas/Link'
+            - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specificNode` or a node indicating a common ancestor with `specificNode`.
+              nullable: true
+        'http://ogp.me/ns#image':
+          allOf:
+            - $ref: '#/components/schemas/MediaLink'
+            - description: A link to an image for use with Open Graph (PNG format).
+              readOnly: true
+        iconFile:
+          allOf:
+            - $ref: '#/components/schemas/MediaLink'
+            - description: A link to an icon-style image (PNG format).
+              readOnly: true
+        license:
+          allOf:
+            - $ref: '#/components/schemas/Link'
+            - description: A link to the license that this image is under.
+        rasterFiles:
+          type: array
+          description: A list of links to raster image files (PNG format) of various sizes.
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/MediaLink'
+        specificNode:
+          allOf:
+            - $ref: '#/components/schemas/Link'
+            - description: A link to the node indicating the specific taxon that this image illustrates.
+        submitter:
+          allOf:
+            - $ref: '#/components/schemas/Link'
+            - description: A link to the account of the user who submitted this image.
+              readOnly: true
+        nodes:
+          type: array
+          description: Links to all nodes that this image illustrates, based on `specificNode` and (if provided) `generalNode`.
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/Link'
+        thumbnailFile:
+          allOf:
+            - $ref: '#/components/schemas/MediaLink'
+            - description: A link to a thumbnail image (PNG format).
+              readOnly: true
+        'twitter:image':
+          allOf:
+            - $ref: '#/components/schemas/MediaLink'
+            - description: A link to an image for use with Twitter (PNG format).
+              readOnly: true
+        vectorFile:
+          allOf:
+            - $ref: '#/components/schemas/MediaLink'
+            - description: A link to a vector image file (SVG format).
+              readOnly: true
+              nullable: true
     ImagePatch:
       description: Updates for an image.
       type: object
