@@ -1289,21 +1289,21 @@ paths:
         - $ref: '#/components/parameters/Range'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Image'
-        - name: created<
+        - name: created_lt
           in: query
           required: false
           description: Limits results to entries created on or before this time.
           schema:
             format: date-time
             type: string
-        - name: created>
+        - name: created_gt
           in: query
           required: false
           description: Limits results to entries created on or after this time.
           schema:
             format: date-time
             type: string
-        - name: licenseComponents
+        - name: licensecomponents
           in: query
           required: false
           description: |
@@ -1323,14 +1323,14 @@ paths:
           schema:
             format: '^(\-?(by|nc|sa) )*(\-?(by|nc|sa))$'
             type: string
-        - name: modified<
+        - name: modified_lt
           in: query
           required: false
           description: Limits results to entries modified on or before this time.
           schema:
             format: date-time
             type: string
-        - name: modified>
+        - name: modified_gt
           in: query
           required: false
           description: Limits results to entries modified on or after this time.
