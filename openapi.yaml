@@ -873,6 +873,7 @@ components:
 paths:
   /:
     get:
+      operationId: getRoot
       summary: API information and links to resources.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -921,6 +922,7 @@ paths:
           $ref: '#/components/responses/406'
   /accounts/{uuid}:
     get:
+      operationId: getAccount
       summary: Returns a specific user account.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -944,6 +946,7 @@ paths:
           $ref: '#/components/responses/410'
   /imagefiles:
     post:
+      operationId: postImageFile
       summary: |
         Uploads an image file and creates a new image entry.
 
@@ -989,6 +992,7 @@ paths:
         - Member: []
   /imagefiles/{uuid}:
     get:
+      operationId: getImageFile
       summary: Retrieves an image file.
       parameters:
         - name: Accept
@@ -1003,11 +1007,12 @@ paths:
             type: string
           example: image/png; image/svg+xml
         - name: download
+          allowEmptyValue: true
           in: query
           required: false
           description: Indicates that the file is being downloaded instead of being displayed inline and therefore `Content-Disposition` should be set to `attachment`.
           schema:
-            type: null
+            type: boolean
         - name: variant
           in: query
           required: false
@@ -1053,6 +1058,7 @@ paths:
         '410':
           $ref: '#/components/responses/410'
     put:
+      operationId: putImageFile
       summary: |
         Uploads an image file.
 
@@ -1118,6 +1124,7 @@ paths:
         - Member: []
   /images:
     get:
+      operationId: getImages
       summary: Returns links to resources for images.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1134,6 +1141,7 @@ paths:
                 $ref: '#/components/schemas/Domain'
   /images/{uuid}:
     delete:
+      operationId: deleteImage
       summary: Removes a specific image.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1156,6 +1164,7 @@ paths:
       security:
         - Member: []
     get:
+      operationId: getImage
       summary: Returns data for a specific image.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1181,6 +1190,7 @@ paths:
         '410':
           $ref: '#/components/responses/410'
     patch:
+      operationId: patchImage
       summary: Updates a specific image's data.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1219,6 +1229,7 @@ paths:
       security:
         - Member: []
     post:
+      operationId: postImage
       summary: Adds a new image entry after the file has been uploaded.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1255,6 +1266,7 @@ paths:
         - Member: []
   /imagesets:
     post:
+      operationId: postImageSet
       summary: Creates or retrieves a set of images.
       requestBody:
         required: true
@@ -1269,6 +1281,7 @@ paths:
           $ref: '#/components/responses/400'
   /imagesets/{uuid}:
     get:
+      operationId: getImageSet
       summary: Returns a specific set of images.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1346,6 +1359,7 @@ paths:
           $ref: '#/components/responses/416'
   /licenses:
     get:
+      operationId: getLicenses
       summary: Returns a list of licenses.
       description:
         Returns a list of all licenses that may be used for new submissions.
@@ -1365,6 +1379,7 @@ paths:
                   $ref: '#/components/schemas/TitledLink'
   /nodes:
     get:
+      operationId: getNodes
       summary: Returns links to resources for phylogenetic nodes.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1398,6 +1413,7 @@ paths:
         '406':
           $ref: '#/components/responses/406'
     post:
+      operationId: postNode
       summary: Creates a new phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1429,6 +1445,7 @@ paths:
         - Member: []
   /nodes/{uuid}:
     delete:
+      operationId: deleteNode
       summary: Removes a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1449,6 +1466,7 @@ paths:
       security:
         - Member: []
     get:
+      operationId: getNode
       summary: Returns a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1472,6 +1490,7 @@ paths:
         '410':
           $ref: '#/components/responses/410'
     patch:
+      operationId: patchNode
       summary: Updates a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1508,6 +1527,7 @@ paths:
       security:
         - Member: []
     post:
+      operationId: postNode
       summary: Creates a new phylogenetic node for the specified UUID.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1549,6 +1569,7 @@ paths:
         - Member: []
   /nodesets:
     post:
+      operationId: postNodeSet
       summary: Creates or retrieves a set of phylogenetic nodes.
       requestBody:
         required: true
@@ -1563,6 +1584,7 @@ paths:
           $ref: '#/components/responses/400'
   /nodesets/{uuid}:
     get:
+      operationId: getNodeSet
       summary: Returns a specific set of phylogenetic nodes.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1593,12 +1615,14 @@ paths:
           $ref: '#/components/responses/416'
   /ping:
     get:
+      operationId: ping
       summary: Checks if the API is operational.
       responses:
         '204':
           $ref: '#/components/responses/204'
   /resolve/{uri}:
     get:
+      operationId: resolve
       summary: Resolves an external URI to the closest phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1635,6 +1659,7 @@ paths:
           $ref: '#/components/responses/406'
   /search/nodes:
     get:
+      operationId: searchNodes
       summary: Returns an embedded list of references to nodes whose names match a search string.
       parameters:
         - $ref: '#/components/parameters/Accept'
