@@ -1533,6 +1533,7 @@ paths:
       summary: Creates a new phylogenetic node for the specified UUID.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
         content:
