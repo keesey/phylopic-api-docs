@@ -73,28 +73,28 @@ components:
       in: query
       description: |
         A space-separated list of related entities to embed. May include:
-        - `general_node`
+        - `generalNode`
         - `nodes`
-        - `specific_node`
+        - `specificNode`
         - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((general_node|nodes|specific_node|submitter) )*(general_node|nodes|specific_node|submitter)$'
+        pattern: '^((generalNode|nodes|specificNode|submitter) )*(generalNode|nodes|specificNode|submitter)$'
         type: string
     embed-Node:
       name: embed
       in: query
       description: |
         A space-separated list of related entities to embed. May include:
-        - `child_nodes`
-        - `parent_node`
-        - `primary_image`
+        - `childNodes`
+        - `parentNode`
+        - `primaryImage`
         - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((child_nodes|parent_node|primary_image|submitter) )*(child_nodes|parent_node|primary_image|submitter)$'
+        pattern: '^((childNodes|parentNode|primaryImage|submitter) )*(childNodes|parentNode|primaryImage|submitter)$'
         type: string
     uuid-Entity:
       name: uuid
@@ -223,7 +223,7 @@ components:
             $ref: '#/components/schemas/Errors'
     'list-Image':
       description: |
-        [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) list of embedded image records.
+        [HAL](http://stateless.co/hapecification.html) [JSON](https://www.json.org/) list of embedded image records.
       headers:
         Accept-Ranges:
           $ref: '#/components/headers/Accept-Ranges'
@@ -259,7 +259,7 @@ components:
                       - description: Link to this entity.
     'list-Node':
       description: |
-        [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) list of embedded node records.
+        [HAL](http://stateless.co/hapecification.html) [JSON](https://www.json.org/) list of embedded node records.
       headers:
         Accept-Ranges:
           $ref: '#/components/headers/Accept-Ranges'
@@ -299,8 +299,8 @@ components:
       required:
         - _links
         - email
-        - family_name
-        - given_name
+        - familyName
+        - givenName
         - role
       allOf:
         - $ref: '#/components/schemas/Entity'
@@ -310,13 +310,13 @@ components:
               type: object
               required:
                 - self
-                - submitted_image_set
-                - submitted_node_set
+                - submittedImageSet
+                - submittedNodeSet
               properties:
-                submitted_image_set:
+                submittedImageSet:
                   $ref: '#/components/schemas/Link'
                   readOnly: true
-                submitted_node_set:
+                submittedNodeSet:
                   $ref: '#/components/schemas/Link'
                   readOnly: true
             email:
@@ -324,12 +324,12 @@ components:
               format: email
               readOnly: true
               type: string
-            family_name:
+            familyName:
               description: The user's family name (or surname).
               readOnly: true
               type: string
               example: 'Linnaeus'
-            given_name:
+            givenName:
               description: The user's given name.
               readOnly: true
               type: string
@@ -349,18 +349,18 @@ components:
         _links:
           type: object
           required:
-            - entity_creation
-            - entity_set
-            - entity_set_creation
+            - entityCreation
+            - entitySet
+            - entitySetCreation
             - self
           properties:
-            entity_creation:
+            entityCreation:
               description: The endpoint for creating new entities.
               $ref: '#/components/schemas/Link'
-            entity_set:
+            entitySet:
               description: The URL for getting all entities in this domain.
               $ref: '#/components/schemas/Link'
-            entity_set_creation:
+            entitySetCreation:
               description: The URL for creating and retrieving entity sets from lists of UUIDs.
               $ref: '#/components/schemas/Link'
             self:
@@ -411,11 +411,11 @@ components:
       items:
         type: object
         required:
-          - developer_message
+          - developerMessage
           - type
-          - user_message
+          - userMessage
         properties:
-          developer_message:
+          developerMessage:
             description: A message with details for developers.
             type: string
             example: 'Failure at line 100 of file script.scr.'
@@ -432,7 +432,7 @@ components:
             description: The type of error, from [this list](https://docs.aws.amazon.com/apigateway/api-reference/resource/gateway-response/#responseType).
             type: string
             example: BAD_REQUEST_PARAMETERS
-          user_message:
+          userMessage:
             description: A message to be presented to the user.
             type: string
             example: 'This is an error message legible to users.'
@@ -452,30 +452,30 @@ components:
             _links:
               type: object
               required:
-                - general_node
+                - generalNode
                 - http://ogp.me/ns#image
-                - icon_file
+                - iconFile
                 - license
-                - raster_files
+                - rasterFiles
                 - self
-                - specific_node
+                - specificNode
                 - submitter
                 - nodes
-                - thumbnail_file
+                - thumbnailFile
                 - twitter:image
-                - vector_file
+                - vectorFile
               properties:
-                general_node:
+                generalNode:
                   allOf:
                     - $ref: '#/components/schemas/Link'
-                    - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specific_node` or a node indicating a common ancestor with `specific_node`.
+                    - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specificNode` or a node indicating a common ancestor with `specificNode`.
                       nullable: true
                 'http://ogp.me/ns#image':
                   allOf:
                     - $ref: '#/components/schemas/MediaLink'
                     - description: A link to an image for use with Open Graph (PNG format).
                       readOnly: true
-                icon_file:
+                iconFile:
                   allOf:
                     - $ref: '#/components/schemas/MediaLink'
                     - description: A link to an icon-style image (PNG format).
@@ -484,13 +484,13 @@ components:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: A link to the license that this image is under.
-                raster_files:
+                rasterFiles:
                   type: array
                   description: A list of links to raster image files (PNG format) of various sizes.
                   readOnly: true
                   items:
                     $ref: '#/components/schemas/MediaLink'
-                specific_node:
+                specificNode:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: A link to the node indicating the specific taxon that this image illustrates.
@@ -501,11 +501,11 @@ components:
                       readOnly: true
                 nodes:
                   type: array
-                  description: Links to all nodes that this image illustrates, based on `specific_node` and (if provided) `general_node`.
+                  description: Links to all nodes that this image illustrates, based on `specificNode` and (if provided) `generalNode`.
                   readOnly: true
                   items:
                     $ref: '#/components/schemas/Link'
-                thumbnail_file:
+                thumbnailFile:
                   allOf:
                     - $ref: '#/components/schemas/MediaLink'
                     - description: A link to a thumbnail image (PNG format).
@@ -515,7 +515,7 @@ components:
                     - $ref: '#/components/schemas/MediaLink'
                     - description: A link to an image for use with Twitter (PNG format).
                       readOnly: true
-                vector_file:
+                vectorFile:
                   allOf:
                     - $ref: '#/components/schemas/MediaLink'
                     - description: A link to a vector image file (SVG format).
@@ -532,16 +532,16 @@ components:
         _links:
           type: object
           properties:
-            general_node:
+            generalNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
-                - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specific_node` or a node indicating a common ancestor with `specific_node`.
+                - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specificNode` or a node indicating a common ancestor with `specificNode`.
                   nullable: true
             license:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the license that this image is under.
-            specific_node:
+            specificNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the node indicating the specific taxon that this image illustrates.
@@ -559,18 +559,18 @@ components:
           type: object
           required:
             - license
-            - specific_node
+            - specificNode
           properties:
-            general_node:
+            generalNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
-                - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specific_node` or a node indicating a common ancestor with `specific_node`.
+                - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specificNode` or a node indicating a common ancestor with `specificNode`.
                   nullable: true
             license:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the license that this image is under.
-            specific_node:
+            specificNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the node indicating the specific taxon that this image illustrates.
@@ -585,7 +585,7 @@ components:
               type: object
               description: Embedded entities related to the image. See `_links` for more information.
               properties:
-                general_node:
+                generalNode:
                   $ref: '#/components/schemas/Node'
                   nullable: true
                 nodes:
@@ -593,7 +593,7 @@ components:
                   readOnly: true
                   items:
                     $ref: '#/components/schemas/Node'
-                specific_node:
+                specificNode:
                   $ref: '#/components/schemas/Node'
                 submitter:
                   $ref: '#/components/schemas/Account'
@@ -641,16 +641,16 @@ components:
             _links:
               type: object
               required:
-                - child_nodes
-                - descendant_image_set
+                - childNodes
+                - descendantImageSet
                 - external
-                - parent_node
-                - primary_image
+                - parentNode
+                - primaryImage
                 - self
-                - self_image_set
+                - selfImageSet
                 - submitter
               properties:
-                child_nodes:
+                childNodes:
                   type: array
                   description: |
                     Links to all immediate descendant nodes, in alphabetical order.
@@ -659,7 +659,7 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - readOnly: true
-                descendant_image_set:
+                descendantImageSet:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to an image set with all images illustrating all descendant nodes.
@@ -670,17 +670,17 @@ components:
                   description: Links to the same node under other domains (for example, Encyclopedia of Life).
                   items:
                     $ref: '#/components/schemas/TitledLink'
-                parent_node:
+                parentNode:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to the parent node (immediate ancestor).
                       nullable: true
-                primary_image:
+                primaryImage:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to the primary image for this node.
                       nullable: true
-                self_image_set:
+                selfImageSet:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to an image set with all images illustrating this nodes.
@@ -751,7 +751,7 @@ components:
               description: Links to the same node under other domains (for example, Encyclopedia of Life).
               items:
                 $ref: '#/components/schemas/Link'
-            parent_node:
+            parentNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: Link to the parent node (immediate ancestor).
@@ -774,14 +774,14 @@ components:
         _links:
           type: object
           required:
-            - parent_node
+            - parentNode
           properties:
             external:
               type: array
               description: Links to the same node under other domains (for example, Encyclopedia of Life).
               items:
                 $ref: '#/components/schemas/Link'
-            parent_node:
+            parentNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: Link to the parent node (immediate ancestor).
@@ -801,7 +801,7 @@ components:
         _embedded:
           type: object
           properties:
-            primary_image:
+            primaryImage:
               $ref: '#/components/schemas/Image'
         _links:
           type: object
@@ -828,14 +828,14 @@ components:
               type: object
               description: Embedded entities related to the phylogenetic node. See `_links` for more information.
               properties:
-                child_nodes:
+                childNodes:
                   type: array
                   items:
                     $ref: '#/components/schemas/Node'
-                parent_node:
+                parentNode:
                   $ref: '#/components/schemas/Node'
                   nullable: true
-                primary_image:
+                primaryImage:
                   $ref: '#/components/schemas/Image'
                   nullable: true
                 submitter:
@@ -1302,7 +1302,7 @@ paths:
           schema:
             format: date-time
             type: string
-        - name: license_components
+        - name: licenseComponents
           in: query
           required: false
           description: |
@@ -1402,9 +1402,9 @@ paths:
                       _links:
                         type: object
                         required:
-                          - entity_creation
-                          - entity_set
-                          - entity_set_creation
+                          - entityCreation
+                          - entitySet
+                          - entitySetCreation
                           - search
                           - self
                         properties:
