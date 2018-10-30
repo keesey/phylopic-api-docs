@@ -1058,7 +1058,12 @@ paths:
           content:
             image/png:
               schema:
-                $ref: '#/components/schemas/Image'
+                format: binary
+                type: string
+            image/svg+xml:
+              schema:
+                format: xml
+                type: string
         '400':
           $ref: '#/components/responses/400'
         '404':
