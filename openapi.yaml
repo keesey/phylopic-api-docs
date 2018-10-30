@@ -73,14 +73,14 @@ components:
       in: query
       description: |
         A space-separated list of related entities to embed. May include:
+        - `contributor`
         - `generalNode`
         - `nodes`
         - `specificNode`
-        - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((generalNode|nodes|specificNode|submitter) )*(generalNode|nodes|specificNode|submitter)$'
+        pattern: '^((contributor|generalNode|nodes|specificNode) )*(contributor|generalNode|nodes|specificNode)$'
         type: string
     embed-Node:
       name: embed
@@ -88,13 +88,13 @@ components:
       description: |
         A space-separated list of related entities to embed. May include:
         - `childNodes`
+        - `contributor`
         - `parentNode`
         - `primaryImage`
-        - `submitter`
 
         If omitted, no entities will be embedded.
       schema:
-        pattern: '^((childNodes|parentNode|primaryImage|submitter) )*(childNodes|parentNode|primaryImage|submitter)$'
+        pattern: '^((contributor|childNodes|parentNode|primaryImage) )*(contributor|childNodes|parentNode|primaryImage)$'
         type: string
     uuid-Entity:
       name: uuid
@@ -106,8 +106,6 @@ components:
         type: string
         example: '123e4567-e89b-12d3-a456-426655440000'
   responses:
-    '202':
-      description: The request was accepted, but there is nothing to return yet. There may be at a later time.
     '204':
       description: The request completed successfully. No further information is provided.
     '302':
@@ -454,19 +452,22 @@ components:
     ImageLinks:
       type: object
       required:
+        - contributor
         - generalNode
         - http://ogp.me/ns#image
-        - iconFile
         - license
         - rasterFiles
         - self
+        - sourceFile
         - specificNode
-        - submitter
         - nodes
-        - thumbnailFile
         - twitter:image
-        - vectorFile
       properties:
+        contributor:
+          allOf:
+            - $ref: '#/components/schemas/Link'
+            - description: A link to the account of the user who submitted this image.
+              readOnly: true
         generalNode:
           allOf:
             - $ref: '#/components/schemas/Link'
@@ -476,11 +477,6 @@ components:
           allOf:
             - $ref: '#/components/schemas/MediaLink'
             - description: A link to an image for use with Open Graph (PNG format).
-              readOnly: true
-        iconFile:
-          allOf:
-            - $ref: '#/components/schemas/MediaLink'
-            - description: A link to an icon-style image (PNG format).
               readOnly: true
         license:
           allOf:
@@ -496,22 +492,12 @@ components:
           allOf:
             - $ref: '#/components/schemas/Link'
             - description: A link to the node indicating the specific taxon that this image illustrates.
-        submitter:
-          allOf:
-            - $ref: '#/components/schemas/Link'
-            - description: A link to the account of the user who submitted this image.
-              readOnly: true
         nodes:
           type: array
           description: Links to all nodes that this image illustrates, based on `specificNode` and (if provided) `generalNode`.
           readOnly: true
           items:
             $ref: '#/components/schemas/Link'
-        thumbnailFile:
-          allOf:
-            - $ref: '#/components/schemas/MediaLink'
-            - description: A link to a thumbnail image (PNG format).
-              readOnly: true
         'twitter:image':
           allOf:
             - $ref: '#/components/schemas/MediaLink'
@@ -587,6 +573,8 @@ components:
               type: object
               description: Embedded entities related to the image. See `_links` for more information.
               properties:
+                contributor:
+                  $ref: '#/components/schemas/Account'
                 generalNode:
                   $ref: '#/components/schemas/Node'
                   nullable: true
@@ -597,8 +585,6 @@ components:
                     $ref: '#/components/schemas/Node'
                 specificNode:
                   $ref: '#/components/schemas/Node'
-                submitter:
-                  $ref: '#/components/schemas/Account'
         - $ref: '#/components/schemas/Image'
     Link:
       description: A basic link.
@@ -644,13 +630,13 @@ components:
               type: object
               required:
                 - childNodes
+                - contributor
                 - descendantImageSet
                 - external
                 - parentNode
                 - primaryImage
                 - self
                 - selfImageSet
-                - submitter
               properties:
                 childNodes:
                   type: array
@@ -661,6 +647,11 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - readOnly: true
+                contributor:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to the account of the user who submitted this node.
+                      readOnly: true
                 descendantImageSet:
                   allOf:
                     - $ref: '#/components/schemas/Link'
@@ -687,11 +678,6 @@ components:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to an image set with all images illustrating this nodes.
                       nullable: true
-                      readOnly: true
-                submitter:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: A link to the account of the user who submitted this node.
                       readOnly: true
             names:
               type: array
@@ -834,14 +820,14 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/Node'
+                contributor:
+                  $ref: '#/components/schemas/Account'
+                  nullable: true
                 parentNode:
                   $ref: '#/components/schemas/Node'
                   nullable: true
                 primaryImage:
                   $ref: '#/components/schemas/Image'
-                  nullable: true
-                submitter:
-                  $ref: '#/components/schemas/Account'
                   nullable: true
         - $ref: '#/components/schemas/Node'
     TitledLink:
@@ -949,9 +935,8 @@ paths:
   /imagefiles:
     post:
       operationId: postImageFile
-      summary: |
-        Uploads an image file and creates a new image entry.
-
+      summary: Uploads an image file and creates a new image entry.
+      description: |
         The image entry should be created (using `POST /images/{uuid}`) shortly afterward. If not, the file will be deleted from the server eventually.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1022,17 +1007,41 @@ paths:
           description: |
             Specifies a particular version of the image to retrieve.
 
-            If omitted, the original image is downloaded. This may be a vector file (`image/svg+xml`) or a raster file (`image/png`).
+            If `variant` is omitted, the original image is returned. This may be a vector file (`image/svg+xml`) or a raster file (`image/png`).
+            If the latter, it will have been processed as a `basic` image (see below).
 
-            If present, this will always yield a raster file (`image/png`). The value must be one of the following:
-            * `http://ogp.me/ns#image` - opaque OpenGraph (Facebook post) image with margins (1200×630px)
-            * `icon` - colored icon file (32×32px)
-            * `raster` - trimmed black image with alpha channel (size depends on original)
-            * `raster1024` - trimmed black image with alpha channel (1024px in one dimension, <=1024px in the other)
-            * `raster256` - trimmed black image with alpha channel (256px in one dimension, <=256px in the other)
-            * `raster64` - trimmed black image with alpha channel (64px in one dimension, <=64px in the other)
-            * `thumbnail` - black image with alpha channel (64×64px)
-            * `twitter:image` - opaque Twitter image with margins (440×220px)
+            If `variant` is present, this endpoints will always yield a raster file (`image/png`). The value must begin with one of the following:
+            * `basic` - Completely black with alpha channel, trimmed to fit content exactly. Intended for use in diagrams.
+            * `social` - Black on white, with margins. Intended for previews in social media.
+            * `square` - Same as `basic`, but with both dimensions the same. Intended for use in diagrams.
+
+            The value must end with an indication of the largest dimension (width or height). Valid values for `basic` and `square` are:
+            * `32`
+            * `64`
+            * `128`
+            * `256`
+            * `512`
+            * `1024`
+
+            Valid values for `social` are:
+            * `1200x630` - Intended for Facebook posts.
+            * `440x220` - Intended for Twitter posts.
+
+            All valid values:
+            * `basic32`
+            * `basic64`
+            * `basic128`
+            * `basic256`
+            * `basic512`
+            * `basic1024`
+            * `social1200x630`
+            * `social440x220`
+            * `square32`
+            * `square64`
+            * `square128`
+            * `square256`
+            * `square512`
+            * `square1024`
           schema:
             type: string
           example: thumbnail
@@ -1050,8 +1059,6 @@ paths:
             image/png:
               schema:
                 $ref: '#/components/schemas/Image'
-        '202':
-          $ref: '#/components/responses/202'
         '400':
           $ref: '#/components/responses/400'
         '404':
@@ -1062,10 +1069,8 @@ paths:
           $ref: '#/components/responses/410'
     put:
       operationId: putImageFile
-      summary: |
-        Uploads an image file.
-
-        This either specifies the UUID for a enw image or updates an existing image.
+      summary: Uploads an image file.
+      description: This either specifies the UUID for a new image or updates an existing image.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -1078,13 +1083,9 @@ paths:
               format: binary
       responses:
         '200':
-          description: |
-            The upload was successful, and created a new image.
+          description: The upload was successful, and updated an existing image.
             
-            This image will not be on the site until a record is created for it (`POST /images/{uuid}`).
-            If it is not created in a timely manner, this image file may be deleted.
-
-            The content is a provisional [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+            The content is a [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
@@ -1097,8 +1098,11 @@ paths:
         '201':
           description: |
             The upload was successful, and created a new image.
+            
+            This image will not be on the site until a record is created for it (`POST /images/{uuid}`).
+            If it is not created in a timely manner, this image file may be deleted.
 
-            The content is a [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+            The content is a provisional [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
