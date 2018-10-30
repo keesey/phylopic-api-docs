@@ -1044,7 +1044,7 @@ paths:
             * `square1024`
           schema:
             type: string
-          example: thumbnail
+          example: basic32
       responses:
         '200':
           description: |
