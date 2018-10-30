@@ -1234,6 +1234,7 @@ paths:
       summary: Adds a new image entry after the file has been uploaded.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
         content:
