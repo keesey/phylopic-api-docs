@@ -1528,7 +1528,7 @@ paths:
       security:
         - Member: []
     post:
-      operationId: postNode
+      operationId: postNodeWithUUID
       summary: Creates a new phylogenetic node for the specified UUID.
       parameters:
         - $ref: '#/components/parameters/Accept'
