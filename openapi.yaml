@@ -995,6 +995,7 @@ paths:
       operationId: getImageFile
       summary: Retrieves an image file.
       parameters:
+        - $ref: '#/components/parameters/uuid-Entity'
         - name: Accept
           in: header
           required: false
