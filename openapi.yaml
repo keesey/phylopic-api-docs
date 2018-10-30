@@ -234,6 +234,7 @@ components:
           schema:
             type: object
             required:
+              - _embedded
               - _links
             properties:
               _embedded:
@@ -270,6 +271,7 @@ components:
           schema:
             type: object
             required:
+              - _embedded
               - _links
             properties:
               _embedded:
