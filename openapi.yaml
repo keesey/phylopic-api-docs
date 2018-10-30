@@ -256,12 +256,6 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - description: Link to this entity.
-              range:
-                type: array
-                description: Starting and ending index of the items (zero-based, inclusive).
-                items:
-                  format: uint
-                  type: number
               total:
                 description: The total number of items in the set.
                 format: uint
@@ -303,12 +297,6 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - description: Link to this entity.
-              range:
-                type: array
-                description: Starting and ending index of the items (zero-based, inclusive).
-                items:
-                  format: uint
-                  type: number
               total:
                 description: The total number of items in the set.
                 format: uint
