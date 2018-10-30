@@ -256,6 +256,16 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - description: Link to this entity.
+              range:
+                type: array
+                description: Starting and ending index of the items (zero-based, inclusive).
+                items:
+                  format: uint
+                  type: number
+              total:
+                description: The total number of items in the set.
+                format: uint
+                type: number
     'list-Node':
       description: |
         [HAL](http://stateless.co/hapecification.html) [JSON](https://www.json.org/) list of embedded node records.
@@ -293,6 +303,16 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - description: Link to this entity.
+              range:
+                type: array
+                description: Starting and ending index of the items (zero-based, inclusive).
+                items:
+                  format: uint
+                  type: number
+              total:
+                description: The total number of items in the set.
+                format: uint
+                type: number
   schemas:
     Account:
       description: A user's account information.
