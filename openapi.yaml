@@ -1401,6 +1401,8 @@ paths:
         Returns a list of all licenses that may be used for new submissions.
 
         Note that this does not include all licenses for all images in the database.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
       responses:
         '200':
           description: List of titled links to licenses.
