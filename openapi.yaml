@@ -322,11 +322,13 @@ components:
                 - submittedNodeSet
               properties:
                 submittedImageSet:
-                  $ref: '#/components/schemas/Link'
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - readOnly: true
                 submittedNodeSet:
-                  $ref: '#/components/schemas/Link'
-                  readOnly: true
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - readOnly: true
             email:
               description: The user's email address.
               format: email
@@ -363,14 +365,17 @@ components:
             - self
           properties:
             entityCreation:
-              description: The endpoint for creating new entities.
-              $ref: '#/components/schemas/Link'
+              allOf:
+                - description: The endpoint for creating new entities.
+                - $ref: '#/components/schemas/Link'
             entitySet:
-              description: The URL for getting all entities in this domain.
-              $ref: '#/components/schemas/Link'
+              allOf:
+                - description: The URL for getting all entities in this domain.
+                - $ref: '#/components/schemas/Link'
             entitySetCreation:
-              description: The URL for creating and retrieving entity sets from lists of UUIDs.
-              $ref: '#/components/schemas/Link'
+              allOf:
+                - description: The URL for creating and retrieving entity sets from lists of UUIDs.
+                - $ref: '#/components/schemas/Link'
             self:
               $ref: '#/components/schemas/Link'
     Entity:
@@ -586,8 +591,9 @@ components:
                 contributor:
                   $ref: '#/components/schemas/Account'
                 generalNode:
-                  $ref: '#/components/schemas/Node'
-                  nullable: true
+                  allOf:
+                    - $ref: '#/components/schemas/Node'
+                    - nullable: true
                 nodes:
                   type: array
                   readOnly: true
@@ -831,14 +837,17 @@ components:
                   items:
                     $ref: '#/components/schemas/Node'
                 contributor:
-                  $ref: '#/components/schemas/Account'
-                  nullable: true
+                  allOf:
+                    - $ref: '#/components/schemas/Account'
+                    - nullable: true
                 parentNode:
-                  $ref: '#/components/schemas/Node'
-                  nullable: true
+                  allOf:
+                    - $ref: '#/components/schemas/Node'
+                    - nullable: true
                 primaryImage:
-                  $ref: '#/components/schemas/Image'
-                  nullable: true
+                  allOf:
+                    - $ref: '#/components/schemas/Image'
+                    - nullable: true
         - $ref: '#/components/schemas/Node'
     TitledLink:
       description: A link with a title, usually for an external resource.
@@ -1080,6 +1089,8 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
+        '409':
+          $ref: '#/components/responses/409'
         '410':
           $ref: '#/components/responses/410'
     put:
@@ -1161,6 +1172,8 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/Domain'
+        '406':
+          $ref: '#/components/responses/406'
   /images/{uuid}:
     delete:
       operationId: deleteImage
@@ -1400,6 +1413,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TitledLink'
+        '406':
+          $ref: '#/components/responses/406'
   /nodes:
     get:
       operationId: getNodes
