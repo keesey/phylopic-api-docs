@@ -1070,7 +1070,7 @@ paths:
           headers:
             Content-Disposition:
               description: Tells whether the download is inline or as an attachment. If the latter, provides a detailed filename.
-              example: attachment; filename="Homo-sapiens_Leonardo-da-Vinci_public-domain_thumbnail.png"
+              example: attachment; filename="Homo sapiens by Leonardo da Vinci (PDM).png"
               schema:
                 type: string
           content:
