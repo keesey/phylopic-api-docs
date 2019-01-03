@@ -1027,7 +1027,6 @@ paths:
             Specifies a particular version of the image to retrieve.
 
             If `variant` is omitted, the original image is returned. This may be a vector file (`image/svg+xml`) or a raster file (`image/png`).
-            If the latter, it will have been processed as a `basic` image (see below).
 
             If `variant` is present, this endpoints will always yield a raster file (`image/png`). The value must begin with one of the following:
             * `basic` - Completely black with alpha channel, trimmed to fit content exactly. Intended for use in diagrams.
