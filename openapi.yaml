@@ -17,6 +17,12 @@ components:
       schema:
         pattern: '^items$'
         type: string
+    Content-Length:
+      description: The length of the content, in bytes.
+      example: 1024
+      schema:
+        format: number
+        type: string
     Content-Range:
       description: |
         The range of embedded items, in the format `items {start}-{end}/{total}`.
@@ -951,209 +957,6 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
-  /imagefiles:
-    post:
-      operationId: postImageFile
-      summary: Uploads an image file and creates a new image entry.
-      description: |
-        The image entry should be created (using `POST /images/{uuid}`) shortly afterward. If not, the file will be deleted from the server eventually.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-      requestBody:
-        required: true
-        content:
-          image/*:
-            schema:
-              type: string
-              format: binary
-      responses:
-        '201':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/Image'
-        '303':
-          description: The file was already uploaded for another image.
-          headers:
-            Location:
-              $ref: '#/components/headers/Location'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '406':
-          $ref: '#/components/responses/406'
-        '413':
-          $ref: '#/components/responses/413'
-      security:
-        - Member: []
-  /imagefiles/{uuid}:
-    get:
-      operationId: getImageFile
-      summary: Retrieves an image file.
-      parameters:
-        - $ref: '#/components/parameters/uuid-Entity'
-        - name: Accept
-          in: header
-          required: false
-          description: |
-            The MIME type for the response, including API version. Must allow `image/png` and, if the `variant` parameter is absent, `image/svg+xml`.
-
-            If omitted, `*` (a wildcard allowing all types) is assumed.
-          schema:
-            format: mimetype
-            type: string
-          example: image/png; image/svg+xml
-        - name: download
-          allowEmptyValue: true
-          in: query
-          required: false
-          description: Indicates that the file is being downloaded instead of being displayed inline and therefore `Content-Disposition` should be set to `attachment`.
-          schema:
-            type: boolean
-        - name: variant
-          in: query
-          required: false
-          description: |
-            Specifies a particular version of the image to retrieve.
-
-            If `variant` is omitted, the original image is returned. This may be a vector file (`image/svg+xml`) or a raster file (`image/png`).
-
-            If `variant` is present, this endpoints will always yield a raster file (`image/png`). The value must begin with one of the following:
-            * `basic` - Completely black with alpha channel, trimmed to fit content exactly. Intended for use in diagrams.
-            * `social` - Black on white, with margins. Intended for previews in social media.
-            * `square` - Same as `basic`, but with both dimensions the same. Intended for use in diagrams.
-
-            The value must end with an indication of the largest dimension (width or height). Valid values for `basic` and `square` are:
-            * `32`
-            * `64`
-            * `128`
-            * `256`
-            * `512`
-            * `1024`
-
-            Valid values for `social` are:
-            * `1200x630` - Intended for Facebook posts.
-            * `440x220` - Intended for Twitter posts.
-
-            All valid values:
-            * `basic32`
-            * `basic64`
-            * `basic128`
-            * `basic256`
-            * `basic512`
-            * `basic1024`
-            * `social1200x630`
-            * `social440x220`
-            * `square32`
-            * `square64`
-            * `square128`
-            * `square256`
-            * `square512`
-            * `square1024`
-          schema:
-            type: string
-          example: basic32
-      responses:
-        '200':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
-          headers:
-            Content-Disposition:
-              description: Tells whether the download is inline or as an attachment. If the latter, provides a detailed filename.
-              example: attachment; filename="Homo sapiens by Leonardo da Vinci (PDM).png"
-              schema:
-                type: string
-          content:
-            image/png:
-              schema:
-                format: binary
-                type: string
-            image/svg+xml:
-              schema:
-                format: xml
-                type: string
-        '400':
-          $ref: '#/components/responses/400'
-        '404':
-          $ref: '#/components/responses/404'
-        '406':
-          $ref: '#/components/responses/406'
-        '409':
-          $ref: '#/components/responses/409'
-        '410':
-          $ref: '#/components/responses/410'
-    put:
-      operationId: putImageFile
-      summary: Uploads an image file.
-      description: This either specifies the UUID for a new image or updates an existing image.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/uuid-Entity'
-      requestBody:
-        required: true
-        content:
-          image/*:
-            schema:
-              type: string
-              format: binary
-      responses:
-        '200':
-          description: The upload was successful, and updated an existing image.
-            
-            The content is a [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/Image'
-        '201':
-          description: |
-            The upload was successful, and created a new image.
-            
-            This image will not be on the site until a record is created for it (`POST /images/{uuid}`).
-            If it is not created in a timely manner, this image file may be deleted.
-
-            The content is a provisional [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/Image'
-        '303':
-          description: The file was already uploaded for another image.
-          headers:
-            Location:
-              $ref: '#/components/headers/Location'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '406':
-          $ref: '#/components/responses/406'
-        '410':
-          $ref: '#/components/responses/410'
-      security:
-        - Member: []
   /images:
     get:
       operationId: getImages
@@ -1804,3 +1607,191 @@ paths:
           $ref: '#/components/responses/406'
         '416':
           $ref: '#/components/responses/416'
+  /submissions/{uuid}:
+    delete:
+      operationId: deleteSubmission
+      summary: Deletes a submitted image file.
+      description: Users can only delete their own submissions, except for administrators.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '410':
+          $ref: '#/components/responses/410'
+      security:
+        - Member: []
+    get:
+      operationId: getSubmission
+      summary: Retrieves a submitted image file.
+      description: Users can only view their own submissions, except for administrators.
+      parameters:
+        - $ref: '#/components/parameters/uuid-Entity'
+        - name: Accept
+          in: header
+          required: false
+          description: |
+            The MIME type for the response, including API version. Must allow the type of the submitted file. This may include:
+
+            - `image/bmp`
+            - `image/gif`
+            - `image/jpeg`
+            - `image/png`
+            - `image/svg+xml`
+            - `image/webp`
+
+            If omitted, `*` (a wildcard allowing all types) is assumed.
+          schema:
+            format: mimetype
+            type: string
+          example: image/*
+      responses:
+        '200':
+          description: The image file, as it was uploaded.
+          headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            image/bmp:
+              schema:
+                format: binary
+                type: string
+            image/gif:
+              schema:
+                format: binary
+                type: string
+            image/jpeg:
+              schema:
+                format: binary
+                type: string
+            image/png:
+              schema:
+                format: binary
+                type: string
+            image/svg+xml:
+              schema:
+                format: xml
+                type: string
+            image/webp:
+              schema:
+                format: binary
+                type: string
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+      security:
+        - Member: []
+    put:
+      operationId: putSubmission
+      summary: Uploads an image file.
+      description: This either specifies the UUID for a new image or attempts to update an existing image.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
+      requestBody:
+        required: true
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: The upload was successful. It will replace the existing image, pending review.
+          headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            image/bmp:
+              schema:
+                format: binary
+                type: string
+            image/gif:
+              schema:
+                format: binary
+                type: string
+            image/jpeg:
+              schema:
+                format: binary
+                type: string
+            image/png:
+              schema:
+                format: binary
+                type: string
+            image/svg+xml:
+              schema:
+                format: xml
+                type: string
+            image/webp:
+              schema:
+                format: binary
+                type: string
+        '201':
+          description: |
+            The upload was successful, and created a new image.
+            
+            This image will not be on the site until a record is created for it (`POST /images/{uuid}`).
+            If it is not created in a timely manner, this image file may be deleted.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            image/bmp:
+              schema:
+                format: binary
+                type: string
+            image/gif:
+              schema:
+                format: binary
+                type: string
+            image/jpeg:
+              schema:
+                format: binary
+                type: string
+            image/png:
+              schema:
+                format: binary
+                type: string
+            image/svg+xml:
+              schema:
+                format: xml
+                type: string
+            image/webp:
+              schema:
+                format: binary
+                type: string
+        '303':
+          description: The file was already uploaded for another image.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+      security:
+        - Member: []
