@@ -227,7 +227,7 @@ components:
             $ref: '#/components/schemas/Errors'
     'list-Image':
       description: |
-        [HAL](http://stateless.co/hapecification.html) [JSON](https://www.json.org/) list of embedded image records.
+        [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) list of embedded image records.
       headers:
         Accept-Ranges:
           $ref: '#/components/headers/Accept-Ranges'
@@ -268,7 +268,7 @@ components:
                 type: number
     'list-Node':
       description: |
-        [HAL](http://stateless.co/hapecification.html) [JSON](https://www.json.org/) list of embedded node records.
+        [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) list of embedded node records.
       headers:
         Accept-Ranges:
           $ref: '#/components/headers/Accept-Ranges'
