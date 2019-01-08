@@ -1651,7 +1651,7 @@ paths:
           schema:
             format: mimetype
             type: string
-          example: image/*
+          example: image/bmp, image/gif, image/jpeg, image/png, image/svg+xml, image/webp
       responses:
         '200':
           description: The image file, as it was uploaded.
@@ -1748,8 +1748,8 @@ paths:
           description: |
             The upload was successful, and created a new image.
             
-            This image will not be on the site until a record is created for it (`POST /images/{uuid}`).
-            If it is not created in a timely manner, this image file may be deleted.
+            This image will not be on the site until an entity record is created for it (`POST /images/{uuid}`), and both of those have been reviewed.
+            If the entity record is not created in a timely manner, the uploaded file may be deleted.
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
