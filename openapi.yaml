@@ -1098,6 +1098,16 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
+        '409':
+          description: |
+            An entity was already created for the specified UUID.
+
+            (This likely means `PATCH` should have been used instead.)
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
         '410':
           $ref: '#/components/responses/410'
       security:
@@ -1254,37 +1264,6 @@ paths:
                             $ref: '#/components/schemas/Link'
         '406':
           $ref: '#/components/responses/406'
-    post:
-      operationId: postNode
-      summary: Creates a new phylogenetic node.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-      requestBody:
-        required: true
-        content:
-          application/vnd.phylopic.v2+json:
-            schema:
-              $ref: '#/components/schemas/NodePost'
-      responses:
-        '201':
-          description: The node has been created.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/Node'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '406':
-          $ref: '#/components/responses/406'
-      security:
-        - Member: []
   /nodes/{uuid}:
     delete:
       operationId: deleteNode
@@ -1369,8 +1348,8 @@ paths:
       security:
         - Member: []
     post:
-      operationId: postNodeWithUUID
-      summary: Creates a new phylogenetic node for the specified UUID.
+      operationId: postNode
+      summary: Creates a new phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
