@@ -1793,5 +1793,14 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+        '415':
+          description: The file uploaded is in an unsupported format.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
       security:
         - Member: []
