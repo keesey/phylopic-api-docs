@@ -323,15 +323,15 @@ components:
             _links:
               type: object
               required:
+                - imageSet
+                - nodeSet
                 - self
-                - submittedImageSet
-                - submittedNodeSet
               properties:
-                submittedImageSet:
+                imageSet:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - readOnly: true
-                submittedNodeSet:
+                nodeSet:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - readOnly: true
@@ -458,7 +458,7 @@ components:
     Image:
       allOf:
         - $ref: '#/components/schemas/Entity'
-        - description: A submitted image.
+        - description: An image illustrating one or more nodes.
           required:
             - _links
             - attribution
@@ -503,33 +503,37 @@ components:
           allOf:
             - $ref: '#/components/schemas/Link'
             - description: A link to the license that this image is under.
-        rasterFiles:
-          type: array
-          description: A list of links to raster image files (PNG format) of various sizes.
-          readOnly: true
-          items:
-            $ref: '#/components/schemas/MediaLink'
-        specificNode:
-          allOf:
-            - $ref: '#/components/schemas/Link'
-            - description: A link to the node indicating the specific taxon that this image illustrates.
         nodes:
           type: array
           description: Links to all nodes that this image illustrates, based on `specificNode` and (if provided) `generalNode`.
           readOnly: true
           items:
             $ref: '#/components/schemas/Link'
+        rasterFiles:
+          type: array
+          description: A list of links to raster image files (PNG format) of various sizes.
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/MediaLink'
+        sourceFile:
+          allOf:
+            - $ref: '#/components/schemas/MediaLink'
+            - description: A link to the image file as it was submitted. May be any of the accepted image formats.
+              readOnly: true
+              nullable: true
+        specificNode:
+          allOf:
+            - $ref: '#/components/schemas/Link'
+            - description: A link to the node indicating the specific taxon that this image illustrates.
+        submission:
+          allOf:
+            - $ref: '#/components/schemas/Link'
+            - description: A link for uploading a new version of the source file (`PUT` method).
         'twitter:image':
           allOf:
             - $ref: '#/components/schemas/MediaLink'
             - description: A link to an image for use with Twitter (PNG format).
               readOnly: true
-        vectorFile:
-          allOf:
-            - $ref: '#/components/schemas/MediaLink'
-            - description: A link to a vector image file (SVG format).
-              readOnly: true
-              nullable: true
     ImagePatch:
       description: Updates for an image.
       type: object
@@ -560,10 +564,6 @@ components:
         - _links
       type: object
       properties:
-        attribution:
-          type: string
-          example: 'Charles Knight'
-          nullable: true
         _links:
           type: object
           required:
@@ -583,8 +583,12 @@ components:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the node indicating the specific taxon that this image illustrates.
+        attribution:
+          type: string
+          example: 'Charles Knight'
+          nullable: true
     ImageWithEmbedded:
-      description: Resource for a submitted image.
+      description: Resource for an image.
       required:
         - _embedded
       allOf:
@@ -1536,10 +1540,88 @@ paths:
           $ref: '#/components/responses/406'
         '416':
           $ref: '#/components/responses/416'
+  /submissions:
+    get:
+      operationId: getSubmissions
+      summary: List all pending submissions.
+      description: Users can only see their own submissions, except for administrators.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+      responses:
+        '200':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) description of pending submissions.
+          headers:
+            Accept-Ranges:
+              $ref: '#/components/headers/Accept-Ranges'
+            Content-Range:
+              $ref: '#/components/headers/Content-Range'
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                type: object
+                required:
+                  - _embedded
+                  - _links
+                properties:
+                  _embedded:
+                    type: object
+                    required:
+                      - items
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - _embedded
+                            - _links
+                            - uuid
+                          properties:
+                            _embedded:
+                              type: object
+                              required:
+                                - image
+                              properties:
+                                image:
+                                  $ref: '#/components/schemas/ImageWithEmbedded'
+                            _links:
+                              type: object
+                              required:
+                                - image
+                                - self
+                              properties:
+                                image:
+                                  $ref: '#/components/schemas/Link'
+                                self:
+                                  $ref: '#/components/schemas/Link'
+                            uuid:
+                              description: The universally unique identifier for this submission/image.
+                              format: uuid
+                              type: string
+                              example: 123e4567-e89b-12d3-a456-426655440000
+                  _links:
+                    type: object
+                    required:
+                      - self
+                    properties:
+                      self:
+                        $ref: '#/components/schemas/Link'
+        '401':
+          $ref: '#/components/responses/401'
+        '406':
+          $ref: '#/components/responses/406'
+        '416':
+          $ref: '#/components/responses/416'
+      security:
+        - Member: []
   /submissions/{uuid}:
     delete:
       operationId: deleteSubmission
-      summary: Deletes a submitted image file.
+      summary: Deletes a submission.
       description: Users can only delete their own submissions, except for administrators.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1553,6 +1635,8 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
       security:
@@ -1626,6 +1710,26 @@ paths:
           $ref: '#/components/responses/410'
       security:
         - Member: []
+    post:
+      operationId: postSubmission
+      summary: Approves a submission and promotes it to the image gallery.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/uuid-Entity'
+      responses:
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+      security:
+        - Administrator: []
     put:
       operationId: putSubmission
       summary: Uploads an image file.
