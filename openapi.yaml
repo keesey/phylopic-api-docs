@@ -1596,6 +1596,7 @@ paths:
                 required:
                   - _embedded
                   - _links
+                  - total
                 properties:
                   _embedded:
                     type: object
@@ -1613,6 +1614,8 @@ paths:
                     properties:
                       self:
                         $ref: '#/components/schemas/Link'
+                  total:
+                    type: number
         '401':
           $ref: '#/components/responses/401'
         '406':
