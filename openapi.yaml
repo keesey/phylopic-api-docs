@@ -859,6 +859,36 @@ components:
                     - $ref: '#/components/schemas/Image'
                     - nullable: true
         - $ref: '#/components/schemas/Node'
+    Submission:
+      description: A resource describing a submitted image file. Includes embedded information.
+      type: object
+      required:
+        - _embedded
+        - _links
+        - uuid
+      properties:
+        _embedded:
+          type: object
+          required:
+            - image
+          properties:
+            image:
+              $ref: '#/components/schemas/ImageWithEmbedded'
+        _links:
+          type: object
+          required:
+            - image
+            - self
+          properties:
+            image:
+              $ref: '#/components/schemas/Link'
+            self:
+              $ref: '#/components/schemas/Link'
+        uuid:
+          description: The universally unique identifier for this submission/image.
+          format: uuid
+          type: string
+          example: 123e4567-e89b-12d3-a456-426655440000
     TitledLink:
       description: A link with a title, usually for an external resource.
       allOf:
@@ -1575,34 +1605,7 @@ paths:
                       items:
                         type: array
                         items:
-                          type: object
-                          required:
-                            - _embedded
-                            - _links
-                            - uuid
-                          properties:
-                            _embedded:
-                              type: object
-                              required:
-                                - image
-                              properties:
-                                image:
-                                  $ref: '#/components/schemas/ImageWithEmbedded'
-                            _links:
-                              type: object
-                              required:
-                                - image
-                                - self
-                              properties:
-                                image:
-                                  $ref: '#/components/schemas/Link'
-                                self:
-                                  $ref: '#/components/schemas/Link'
-                            uuid:
-                              description: The universally unique identifier for this submission/image.
-                              format: uuid
-                              type: string
-                              example: 123e4567-e89b-12d3-a456-426655440000
+                          $ref: '#/components/schemas/Submission'
                   _links:
                     type: object
                     required:
