@@ -1479,56 +1479,6 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
-  /search/images:
-    get:
-      operationId: searchImages
-      summary: Returns an embedded list of references to images whose nodes have names that match a search string.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Range'
-        - name: query
-          in: query
-          required: true
-          description: The text to search for. Must be at least two characters, trimmed of whitespace.
-          schema:
-            type: string
-            example: Homo sapiens
-      responses:
-        '206':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) description of search results.
-          headers:
-            Accept-Ranges:
-              $ref: '#/components/headers/Accept-Ranges'
-            Content-Range:
-              $ref: '#/components/headers/Content-Range'
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                type: object
-                required:
-                  - _embedded
-                  - _links
-                  - query
-                properties:
-                  _embedded:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Image'
-                  query:
-                    type: string
-                    example: Homo sapiens
-        '400':
-          $ref: '#/components/responses/400'
-        '406':
-          $ref: '#/components/responses/406'
-        '416':
-          $ref: '#/components/responses/416'
   /search/nodes:
     get:
       operationId: searchNodes
