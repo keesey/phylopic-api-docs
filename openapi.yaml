@@ -9,6 +9,9 @@ info:
     name: CC0
     url: https://creativecommons.org/share-your-work/public-domain/cc0
   version: 2.0.0-alpha
+servers:
+- url: https://fflpaoip5k.execute-api.us-west-2.amazonaws.com/prod
+  description: The production API server
 components:
   headers:
     Accept-Ranges:
@@ -1427,6 +1430,8 @@ paths:
     post:
       operationId: postNodeSet
       summary: Creates or retrieves a set of phylogenetic nodes.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
       requestBody:
         required: true
         content:
