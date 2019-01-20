@@ -477,11 +477,11 @@ components:
         - generalNode
         - http://ogp.me/ns#image
         - license
+        - nodes
         - rasterFiles
         - self
         - sourceFile
         - specificNode
-        - nodes
         - twitter:image
       properties:
         contributor:
