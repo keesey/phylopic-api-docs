@@ -131,6 +131,8 @@ components:
     '307':
       description: The requested resource is available at another location, temporarily.
       headers:
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
         Location:
           $ref: '#/components/headers/Location'
       content:
@@ -193,10 +195,15 @@ components:
           schema:
             $ref: '#/components/schemas/Errors'
     '409':
-      description: The request could not be completed because the entity is not in a finalized state. 
+      description: |
+        An entity already exists for the specified UUID.
+
+        (This likely means `PATCH` should have been used instead.)
       headers:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
+        Location:
+          $ref: '#/components/headers/Location'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -355,10 +362,10 @@ components:
               example: 'Carolus'
             role:
               description: The user's role.
-              pattern: '^(member|admin)$'
+              pattern: '^(Contributor|admin)$'
               readOnly: true
               type: string
-              example: 'member'
+              example: 'Contributor'
     Domain:
       description: A domain for all entities of a given kind.
       type: object
@@ -557,6 +564,13 @@ components:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the license that this image is under.
+            sourceFile:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: |
+                    A link where the `href` field contains the image file data, using the `data:` scheme. Examples:
+                    - `data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==`
+                    - `data:image/svg+xml,<svg width="1" height="1"></svg>`
             specificNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
@@ -571,6 +585,7 @@ components:
           type: object
           required:
             - license
+            - sourceFile
             - specificNode
           properties:
             generalNode:
@@ -582,6 +597,13 @@ components:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the license that this image is under.
+            sourceFile:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: |
+                    A link where the `href` field contains the image file data, using the `data:` scheme. Examples:
+                    - `data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==`
+                    - `data:image/svg+xml,<svg width="1" height="1"></svg>`
             specificNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
@@ -916,8 +938,8 @@ components:
             type: string
             example: 123e4567-e89b-12d3-a456-426655440000
   securitySchemes:
-    Member:
-      description: Registered member.
+    Contributor:
+      description: Registered Contributor.
       type: http
       scheme: bearer
 paths:
@@ -1017,6 +1039,7 @@ paths:
     delete:
       operationId: deleteImage
       summary: Removes a specific image.
+      description: Also removes any pending changes.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -1031,12 +1054,10 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
-        '409':
-          $ref: '#/components/responses/409'
         '410':
           $ref: '#/components/responses/410'
       security:
-        - Member: []
+        - Contributor: []
     get:
       operationId: getImage
       summary: Returns data for a specific image.
@@ -1059,13 +1080,20 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
-        '409':
-          $ref: '#/components/responses/409'
         '410':
           $ref: '#/components/responses/410'
     patch:
       operationId: patchImage
-      summary: Updates a specific image's data.
+      summary: Updates an existing image.
+      description: |
+        The response returns an image record for the updated image.
+
+        Certain changes (updating the source file or the assigned nodes), require review.
+        These requests will return `202` rather than `200`. If `202`, the response has the same modifications
+        as for [`POST /images/{uuid}`](#postImage).
+
+        To upload a new file, the `sourceFile` link should be a URL with the `data:` scheme, as for
+        [`POST /images/{uuid}`](#postImage).
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -1086,6 +1114,21 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/Image'
+        '202':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '303':
+          description: The file was already uploaded for another image.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -1096,15 +1139,20 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
-        '409':
-          $ref: '#/components/responses/409'
         '410':
           $ref: '#/components/responses/410'
+        '413':
+          $ref: '#/components/responses/413'
       security:
-        - Member: []
+        - Contributor: []
     post:
       operationId: postImage
-      summary: Adds a new image entry after the file has been uploaded.
+      summary: Uploads a new image (file and data) to be added to the site, pending review.
+      description: |
+        On success, this method returns the image record as it will be if it is approved, with the following exceptions:
+        - The `self` link is to a temporary location (see [`GET /submissions/{uuid}`](#getSubmission)).
+        - The `sourceFile` link is to a temporary location, not the final location (see [`GET /submissionfiles/{uuid}`](#getSubmissionFile)).
+        - The other image file links (`https://ogp.me/ns#image`, `rasterFiles`, `twitter:image`) will be `null`.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -1115,7 +1163,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ImagePost'
       responses:
-        '201':
+        '202':
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
@@ -1125,30 +1173,25 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/Image'
+        '303':
+          description: The file was already uploaded for another image.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
         '400':
           $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
         '403':
           $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
         '409':
-          description: |
-            An entity was already created for the specified UUID.
-
-            (This likely means `PATCH` should have been used instead.)
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
-        '410':
-          $ref: '#/components/responses/410'
+          $ref: '#/components/responses/409'
+        '413':
+          $ref: '#/components/responses/413'
       security:
-        - Member: []
+        - Contributor: []
   /imagesets:
     post:
       operationId: postImageSet
@@ -1322,7 +1365,7 @@ paths:
         '410':
           $ref: '#/components/responses/410'
       security:
-        - Member: []
+        - Contributor: []
     get:
       operationId: getNode
       summary: Returns a specific phylogenetic node.
@@ -1383,7 +1426,7 @@ paths:
         '410':
           $ref: '#/components/responses/410'
       security:
-        - Member: []
+        - Contributor: []
     post:
       operationId: postNode
       summary: Creates a new phylogenetic node.
@@ -1402,8 +1445,6 @@ paths:
           headers:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1412,20 +1453,14 @@ paths:
           $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
         '406':
           $ref: '#/components/responses/406'
         '409':
-          description: |
-            An entity was already created for the specified UUID.
-
-            (This likely means `PATCH` should have been used instead.)
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
+          $ref: '#/components/responses/409'
       security:
-        - Member: []
+        - Contributor: []
   /nodesets:
     post:
       operationId: postNodeSet
@@ -1579,48 +1614,19 @@ paths:
     get:
       operationId: getSubmissions
       summary: List all pending submissions.
-      description: Users can only see their own submissions, except for administrators.
+      description: |
+        Users can only see their own submissions, except for administrators.
+
+        Submissions are always listed from first submitted to last submitted.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/embed-Image'
       responses:
-        '200':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) description of pending submissions.
-          headers:
-            Accept-Ranges:
-              $ref: '#/components/headers/Accept-Ranges'
-            Content-Range:
-              $ref: '#/components/headers/Content-Range'
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                type: object
-                required:
-                  - _embedded
-                  - _links
-                  - total
-                properties:
-                  _embedded:
-                    type: object
-                    required:
-                      - items
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Submission'
-                  _links:
-                    type: object
-                    required:
-                      - self
-                    properties:
-                      self:
-                        $ref: '#/components/schemas/Link'
-                  total:
-                    type: number
+        '206':
+          $ref: '#/components/responses/list-Image'
+        '400':
+          $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
         '406':
@@ -1628,11 +1634,11 @@ paths:
         '416':
           $ref: '#/components/responses/416'
       security:
-        - Member: []
+        - Contributor: []
   /submissions/{uuid}:
     delete:
       operationId: deleteSubmission
-      summary: Deletes a submission.
+      summary: Deletes an image submission.
       description: Users can only delete their own submissions, except for administrators.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -1651,18 +1657,65 @@ paths:
         '410':
           $ref: '#/components/responses/410'
       security:
-        - Member: []
+        - Contributor: []
     get:
       operationId: getSubmission
-      summary: Retrieves a submitted image file.
+      summary: Retrieves an image submission.
       description: Users can only view their own submissions, except for administrators.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
+        - $ref: '#/components/parameters/embed-Image'
+      responses:
+        '200':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/ImageWithEmbedded'
+        '404':
+          $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+    post:
+      operationId: postSubmission
+      summary: Approves a submission and promotes it to the image gallery.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/uuid-Entity'
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+      security:
+        - Administrator: []
+  /submissionfiles/{uuid}:
+    get:
+      operationId: getSubmissionFile
+      summary: Retrieves a submitted image file.
+      description: Users can only view their own submitted files, except for administrators.
       parameters:
         - $ref: '#/components/parameters/uuid-Entity'
         - name: Accept
           in: header
           required: false
           description: |
-            The MIME type for the response, including API version. Must allow the type of the submitted file. This may include:
+            The MIME type for the response. Must allow the type of the submitted file. This may include:
 
             - `image/bmp`
             - `image/gif`
@@ -1720,131 +1773,4 @@ paths:
         '410':
           $ref: '#/components/responses/410'
       security:
-        - Member: []
-    post:
-      operationId: postSubmission
-      summary: Approves a submission and promotes it to the image gallery.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Range'
-        - $ref: '#/components/parameters/uuid-Entity'
-      responses:
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '404':
-          $ref: '#/components/responses/404'
-        '406':
-          $ref: '#/components/responses/406'
-        '410':
-          $ref: '#/components/responses/410'
-      security:
-        - Administrator: []
-    put:
-      operationId: putSubmission
-      summary: Uploads an image file.
-      description: This either specifies the UUID for a new image or attempts to update an existing image.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/uuid-Entity'
-      requestBody:
-        required: true
-        content:
-          image/*:
-            schema:
-              type: string
-              format: binary
-      responses:
-        '200':
-          description: The upload was successful. It will replace the existing image, pending review.
-          headers:
-            Content-Length:
-              $ref: '#/components/headers/Content-Length'
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            image/bmp:
-              schema:
-                format: binary
-                type: string
-            image/gif:
-              schema:
-                format: binary
-                type: string
-            image/jpeg:
-              schema:
-                format: binary
-                type: string
-            image/png:
-              schema:
-                format: binary
-                type: string
-            image/svg+xml:
-              schema:
-                format: xml
-                type: string
-            image/webp:
-              schema:
-                format: binary
-                type: string
-        '201':
-          description: |
-            The upload was successful, and created a new image.
-            
-            This image will not be on the site until an entity record is created for it (`POST /images/{uuid}`), and both of those have been reviewed.
-            If the entity record is not created in a timely manner, the uploaded file may be deleted.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            image/bmp:
-              schema:
-                format: binary
-                type: string
-            image/gif:
-              schema:
-                format: binary
-                type: string
-            image/jpeg:
-              schema:
-                format: binary
-                type: string
-            image/png:
-              schema:
-                format: binary
-                type: string
-            image/svg+xml:
-              schema:
-                format: xml
-                type: string
-            image/webp:
-              schema:
-                format: binary
-                type: string
-        '303':
-          description: The file was already uploaded for another image.
-          headers:
-            Location:
-              $ref: '#/components/headers/Location'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '406':
-          $ref: '#/components/responses/406'
-        '410':
-          $ref: '#/components/responses/410'
-        '415':
-          description: The file uploaded is in an unsupported format.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-      security:
-        - Member: []
+        - Contributor: []
