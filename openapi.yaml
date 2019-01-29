@@ -51,7 +51,7 @@ components:
       description: |
         The MIME type for the response, including API version. Must allow `application/vnd.phylopic.v2+json`.
 
-        If omitted, `*` (a wildcard allowing all types) is assumed, and the response's `Content-Type` header will be `application/vnd.phylopic.v2+json`.
+        If omitted, `*/*` (a wildcard allowing all types) is assumed, and the response's `Content-Type` header will be `application/vnd.phylopic.v2+json`.
       schema:
         format: mimetype
         type: string
@@ -362,10 +362,10 @@ components:
               example: 'Carolus'
             role:
               description: The user's role.
-              pattern: '^(Contributor|admin)$'
+              pattern: '^(contributor|admin)$'
               readOnly: true
               type: string
-              example: 'Contributor'
+              example: 'contributor'
     Domain:
       description: A domain for all entities of a given kind.
       type: object
@@ -375,23 +375,8 @@ components:
         _links:
           type: object
           required:
-            - entityCreation
-            - entitySet
-            - entitySetCreation
             - self
           properties:
-            entityCreation:
-              allOf:
-                - description: The endpoint for creating new entities.
-                - $ref: '#/components/schemas/Link'
-            entitySet:
-              allOf:
-                - description: The URL for getting all entities in this domain.
-                - $ref: '#/components/schemas/Link'
-            entitySetCreation:
-              allOf:
-                - description: The URL for creating and retrieving entity sets from lists of UUIDs.
-                - $ref: '#/components/schemas/Link'
             self:
               $ref: '#/components/schemas/Link'
     Entity:
@@ -480,6 +465,23 @@ components:
               nullable: true
             _links:
               $ref: '#/components/schemas/ImageLinks'
+    ImageDomain:
+      allOf:
+        - $ref: '#/components/schemas/Domain'
+        - type: object
+          description: The domain for all images.
+          required:
+            - _links
+          properties:
+            _links:
+              type: object
+              required:
+                - totalSet
+              properties:
+                totalSet:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to the set of all active images.
     ImageLinks:
       type: object
       required:
@@ -488,11 +490,12 @@ components:
         - http://ogp.me/ns#image
         - license
         - nodes
-        - rasterFiles
+        - resizedFiles
         - self
         - sourceFile
         - specificNode
         - twitter:image
+        - vectorFile
       properties:
         contributor:
           allOf:
@@ -519,7 +522,7 @@ components:
           readOnly: true
           items:
             $ref: '#/components/schemas/Link'
-        rasterFiles:
+        resizedFiles:
           type: array
           description: A list of links to raster image files (PNG format) of various sizes.
           readOnly: true
@@ -528,9 +531,8 @@ components:
         sourceFile:
           allOf:
             - $ref: '#/components/schemas/MediaLink'
-            - description: A link to the image file as it was submitted. May be any of the accepted image formats.
+            - description:  A link to the raster image file as it was submitted. May be any of the accepted raster image formats.
               readOnly: true
-              nullable: true
         specificNode:
           allOf:
             - $ref: '#/components/schemas/Link'
@@ -538,12 +540,18 @@ components:
         submission:
           allOf:
             - $ref: '#/components/schemas/Link'
-            - description: A link for uploading a new version of the source file (`PUT` method).
+            - description: A link for viewing the latest submitted changes.
         'twitter:image':
           allOf:
             - $ref: '#/components/schemas/MediaLink'
             - description: A link to an image for use with Twitter (PNG format).
               readOnly: true
+        vectorFile:
+          allOf:
+            - $ref: '#/components/schemas/MediaLink'
+            - description: A link to the vector image file as it was submitted. Always in SVG format.
+              readOnly: true
+              nullable: true
     ImagePatch:
       description: Updates for an image.
       type: object
@@ -568,13 +576,26 @@ components:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: |
-                    A link where the `href` field contains the image file data, using the `data:` scheme. Examples:
-                    - `data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==`
-                    - `data:image/svg+xml,<svg width="1" height="1"></svg>`
+                    A link where the `href` field contains the image file data, using the `data:` scheme. Example:
+
+                    ```
+                    data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==
+                    ```
             specificNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the node indicating the specific taxon that this image illustrates.
+            vectorFile:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: |
+                    A link where the `href` field contains the image file data, using the `data:` scheme. Example:
+                    
+                    ```
+                    data:image/svg+xml,<svg width="1" height="1"></svg>
+                    ```
+
+                    If this is included, then `sourceFile` must be included as well.
     ImagePost:
       description: Data for creating a new image.
       required:
@@ -584,6 +605,7 @@ components:
         _links:
           type: object
           required:
+            - generalNode
             - license
             - sourceFile
             - specificNode
@@ -591,7 +613,10 @@ components:
             generalNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
-                - description: A link to the node indicating how generally the image can be applied, either an ancestor of `specificNode` or a node indicating a common ancestor with `specificNode`.
+                - description: |
+                    A link to the node indicating how generally the image can be applied, either an ancestor of `specificNode` or a node indicating a common ancestor with `specificNode`.
+
+                    May be `null`.
                   nullable: true
             license:
               allOf:
@@ -601,13 +626,24 @@ components:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: |
-                    A link where the `href` field contains the image file data, using the `data:` scheme. Examples:
-                    - `data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==`
-                    - `data:image/svg+xml,<svg width="1" height="1"></svg>`
+                    A link where the `href` field contains raster image file data, using the `data:` scheme. Example:
+
+                    ```
+                    data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==`
+                    ```
             specificNode:
               allOf:
                 - $ref: '#/components/schemas/Link'
                 - description: A link to the node indicating the specific taxon that this image illustrates.
+            vectorFile:
+              allOf:
+                - $ref: '#/components/schemas/Link'
+                - description: |
+                    A link where the `href` field contains vector image file data, using the `data:` scheme. Example:
+
+                    ```
+                    data:image/svg+xml,<svg width="1" height="1"></svg>`
+                    ```
         attribution:
           type: string
           example: 'Charles Knight'
@@ -761,6 +797,28 @@ components:
           properties:
             self:
               $ref: '#/components/schemas/Link'
+    NodeDomain:
+      allOf:
+        - $ref: '#/components/schemas/Domain'
+        - type: object
+          description: The domain for all phylogenetic nodes.
+          required:
+            - _links
+          properties:
+            _links:
+              type: object
+              required:
+                - rootNode
+                - search
+              properties:
+                rootNode:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: Link to the root node (ancestor to all other nodes).
+                search:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: Endpoint for searching for phylogenetic nodes.
     NodeName:
       description: A taxonomic name, associated with a phylogenetic node.
       type: array
@@ -884,36 +942,6 @@ components:
                     - $ref: '#/components/schemas/Image'
                     - nullable: true
         - $ref: '#/components/schemas/Node'
-    Submission:
-      description: A resource describing a submitted image file. Includes embedded information.
-      type: object
-      required:
-        - _embedded
-        - _links
-        - uuid
-      properties:
-        _embedded:
-          type: object
-          required:
-            - image
-          properties:
-            image:
-              $ref: '#/components/schemas/ImageWithEmbedded'
-        _links:
-          type: object
-          required:
-            - image
-            - self
-          properties:
-            image:
-              $ref: '#/components/schemas/Link'
-            self:
-              $ref: '#/components/schemas/Link'
-        uuid:
-          description: The universally unique identifier for this submission/image.
-          format: uuid
-          type: string
-          example: 123e4567-e89b-12d3-a456-426655440000
     TitledLink:
       description: A link with a title, usually for an external resource.
       allOf:
@@ -925,23 +953,17 @@ components:
             title:
               type: string
               example: 'Resource Name'
-    UUIDList:
-      description: An object storing a list of UUIDs.
-      type: object
-      required:
-        - uuids
-      properties:
-        uuids:
-          type: array
-          items:
-            format: uuid
-            type: string
-            example: 123e4567-e89b-12d3-a456-426655440000
   securitySchemes:
-    Contributor:
-      description: Registered Contributor.
+    bearerAuth:
+      description: User signed in to Amazon Cognito.
       type: http
       scheme: bearer
+      bearerFormat: JWT
+    keyAuth:
+      description: User consuming the API data, but not making changes.
+      type: apiKey
+      in: header
+      name: X-API-Key
 paths:
   /:
     get:
@@ -949,6 +971,8 @@ paths:
       summary: API information and links to resources.
       parameters:
         - $ref: '#/components/parameters/Accept'
+      security:
+        - apiKeyAuth: []
       responses:
         '200':
           description: |
@@ -999,6 +1023,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
+      security:
+        - apiKeyAuth: []
       responses:
         '200':
           description: |
@@ -1022,6 +1048,8 @@ paths:
       summary: Returns links to resources for images.
       parameters:
         - $ref: '#/components/parameters/Accept'
+      security:
+        - apiKeyAuth: []
       responses:
         '200':
           description: |
@@ -1032,7 +1060,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                $ref: '#/components/schemas/Domain'
+                $ref: '#/components/schemas/ImageDomain'
         '406':
           $ref: '#/components/responses/406'
   /images/{uuid}:
@@ -1043,6 +1071,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
+      security:
+        - bearerAuth: []
       responses:
         '204':
           $ref: '#/components/responses/204'
@@ -1056,8 +1086,6 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
-      security:
-        - Contributor: []
     get:
       operationId: getImage
       summary: Returns data for a specific image.
@@ -1065,6 +1093,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Image'
+      security:
+        - apiKeyAuth: []
       responses:
         '200':
           description: |
@@ -1103,6 +1133,8 @@ paths:
           application/vnd.phylopic.v2+json:
             schema:
               $ref: '#/components/schemas/ImagePatch'
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: |
@@ -1143,16 +1175,15 @@ paths:
           $ref: '#/components/responses/410'
         '413':
           $ref: '#/components/responses/413'
-      security:
-        - Contributor: []
     post:
       operationId: postImage
       summary: Uploads a new image (file and data) to be added to the site, pending review.
       description: |
         On success, this method returns the image record as it will be if it is approved, with the following exceptions:
         - The `self` link is to a temporary location (see [`GET /submissions/{uuid}`](#getSubmission)).
-        - The `sourceFile` link is to a temporary location, not the final location (see [`GET /submissionfiles/{uuid}`](#getSubmissionFile)).
-        - The other image file links (`https://ogp.me/ns#image`, `rasterFiles`, `twitter:image`) will be `null`.
+        - The `sourceFile` link is to a temporary location, not the final location (see [`GET /submissionfiles/raster/{uuid}`](#getSubmissionRasterFile)).
+        - The `vectorFile` link, if present, is to a temporary location, not the final location (see [`GET /submissionfiles/vector/{uuid}`](#getSubmissionVectorFile)).
+        - The other image file links (`https://ogp.me/ns#image`, `resizedFiles`, `twitter:image`) will be `null`.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -1162,6 +1193,8 @@ paths:
           application/vnd.phylopic.v2+json:
             schema:
               $ref: '#/components/schemas/ImagePost'
+      security:
+        - bearerAuth: []
       responses:
         '202':
           description: |
@@ -1190,23 +1223,6 @@ paths:
           $ref: '#/components/responses/409'
         '413':
           $ref: '#/components/responses/413'
-      security:
-        - Contributor: []
-  /imagesets:
-    post:
-      operationId: postImageSet
-      summary: Creates or retrieves a set of images.
-      requestBody:
-        required: true
-        content:
-          application/vnd.phylopic.v2+json:
-            schema:
-              $ref: '#/components/schemas/UUIDList'
-      responses:
-        '302':
-          $ref: '#/components/responses/302'
-        '400':
-          $ref: '#/components/responses/400'
   /imagesets/{uuid}:
     get:
       operationId: getImageSet
@@ -1276,6 +1292,8 @@ paths:
           schema:
             pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
             type: string
+      security:
+        - apiKeyAuth: []
       responses:
         '206':
           $ref: '#/components/responses/list-Image'
@@ -1295,6 +1313,8 @@ paths:
         Note that this does not include all licenses for all images in the database.
       parameters:
         - $ref: '#/components/parameters/Accept'
+      security:
+        - apiKeyAuth: []
       responses:
         '200':
           description: List of titled links to licenses.
@@ -1315,6 +1335,8 @@ paths:
       summary: Returns links to resources for phylogenetic nodes.
       parameters:
         - $ref: '#/components/parameters/Accept'
+      security:
+        - apiKeyAuth: []
       responses:
         '200':
           description: |
@@ -1325,23 +1347,7 @@ paths:
           content:
             application/vnd.phylopic.v2+json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Domain'
-                  - type: object
-                    required:
-                      - _links
-                    properties:
-                      _links:
-                        type: object
-                        required:
-                          - entityCreation
-                          - entitySet
-                          - entitySetCreation
-                          - search
-                          - self
-                        properties:
-                          search:
-                            $ref: '#/components/schemas/Link'
+                  $ref: '#/components/schemas/NodeDomain'
         '406':
           $ref: '#/components/responses/406'
   /nodes/{uuid}:
@@ -1351,6 +1357,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
+      security:
+        - bearerAuth: []
       responses:
         '204':
           $ref: '#/components/responses/204'
@@ -1364,8 +1372,6 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
-      security:
-        - Contributor: []
     get:
       operationId: getNode
       summary: Returns a specific phylogenetic node.
@@ -1373,6 +1379,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Node'
+      security:
+        - apiKeyAuth: []
       responses:
         '200':
           description: |
@@ -1402,6 +1410,8 @@ paths:
           application/vnd.phylopic.v2+json:
             schema:
               $ref: '#/components/schemas/NodePatch'
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: |
@@ -1425,8 +1435,6 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
-      security:
-        - Contributor: []
     post:
       operationId: postNode
       summary: Creates a new phylogenetic node.
@@ -1439,6 +1447,8 @@ paths:
           application/vnd.phylopic.v2+json:
             schema:
               $ref: '#/components/schemas/NodePost'
+      security:
+        - bearerAuth: []
       responses:
         '201':
           description: The node has been created.
@@ -1459,56 +1469,6 @@ paths:
           $ref: '#/components/responses/406'
         '409':
           $ref: '#/components/responses/409'
-      security:
-        - Contributor: []
-  /nodesets:
-    post:
-      operationId: postNodeSet
-      summary: Creates or retrieves a set of phylogenetic nodes.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-      requestBody:
-        required: true
-        content:
-          application/vnd.phylopic.v2+json:
-            schema:
-              $ref: '#/components/schemas/UUIDList'
-      responses:
-        '302':
-          $ref: '#/components/responses/302'
-        '400':
-          $ref: '#/components/responses/400'
-  /nodesets/{uuid}:
-    get:
-      operationId: getNodeSet
-      summary: Returns a specific set of phylogenetic nodes.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Range'
-        - $ref: '#/components/parameters/uuid-Entity'
-        - $ref: '#/components/parameters/embed-Node'
-        - name: sort
-          in: query
-          required: false
-          description: |
-            A space-separated list of fields to sort by. May include:
-            - `created`
-            - `modified`
-            - `names`
-
-            Any of these may be prepended by `-` to indicate descending order. The default value is `names`.
-          schema:
-            pattern: '^(\-?(created|modified|names) )*(\-?(created|modified|names))$'
-            type: string
-      responses:
-        '206':
-          $ref: '#/components/responses/list-Node'
-        '400':
-          $ref: '#/components/responses/400'
-        '406':
-          $ref: '#/components/responses/406'
-        '416':
-          $ref: '#/components/responses/416'
   /ping:
     get:
       operationId: ping
@@ -1530,6 +1490,8 @@ paths:
             format: uri
             type: string
           example: http://eol.org/328046
+      security:
+        - apiKeyAuth: []
       responses:
         '300':
           description: Several possible matches were found.
@@ -1567,6 +1529,8 @@ paths:
           schema:
             type: string
             example: Homo sapiens
+      security:
+        - apiKeyAuth: []
       responses:
         '206':
           description: |
@@ -1622,6 +1586,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Range'
         - $ref: '#/components/parameters/embed-Image'
+      security:
+        - bearerAuth: []
       responses:
         '206':
           $ref: '#/components/responses/list-Image'
@@ -1633,8 +1599,6 @@ paths:
           $ref: '#/components/responses/406'
         '416':
           $ref: '#/components/responses/416'
-      security:
-        - Contributor: []
   /submissions/{uuid}:
     delete:
       operationId: deleteSubmission
@@ -1643,6 +1607,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
+      security:
+        - bearerAuth: []
       responses:
         '204':
           $ref: '#/components/responses/204'
@@ -1656,8 +1622,6 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
-      security:
-        - Contributor: []
     get:
       operationId: getSubmission
       summary: Retrieves an image submission.
@@ -1666,6 +1630,8 @@ paths:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Image'
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: |
@@ -1683,12 +1649,17 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
-    post:
-      operationId: postSubmission
-      summary: Approves a submission and promotes it to the image gallery.
+    patch:
+      operationId: patchSubmission
+      summary: |
+        Approves a submission and promotes it to the image gallery.
+
+        Only available for administrators.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
+      security:
+        - bearerAuth: []
       responses:
         '204':
           $ref: '#/components/responses/204'
@@ -1702,12 +1673,10 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
-      security:
-        - Administrator: []
-  /submissionfiles/{uuid}:
+  /submissionfiles/raster/{uuid}:
     get:
-      operationId: getSubmissionFile
-      summary: Retrieves a submitted image file.
+      operationId: getSubmissionRasterFile
+      summary: Retrieves a submitted raster image file.
       description: Users can only view their own submitted files, except for administrators.
       parameters:
         - $ref: '#/components/parameters/uuid-Entity'
@@ -1721,22 +1690,27 @@ paths:
             - `image/gif`
             - `image/jpeg`
             - `image/png`
-            - `image/svg+xml`
-            - `image/webp`
 
-            If omitted, `*` (a wildcard allowing all types) is assumed.
+            If omitted, `*/*` (a wildcard allowing all types) is assumed.
           schema:
             format: mimetype
             type: string
-          example: image/bmp, image/gif, image/jpeg, image/png, image/svg+xml, image/webp
+          example: image/bmp,image/gif,image/jpeg,image/png 
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: The image file, as it was uploaded.
+          description: The raster image file, as it was uploaded.
           headers:
             Content-Length:
               $ref: '#/components/headers/Content-Length'
             Content-Type:
-              $ref: '#/components/headers/Content-Type'
+              description: |
+                The MIME type for the response. Will be one of `image/bmp`, `image/gif`, `image/jpeg`, or `image/png`.
+              example: image/png
+              schema:
+                format: mimetype
+                type: string
           content:
             image/bmp:
               schema:
@@ -1754,13 +1728,53 @@ paths:
               schema:
                 format: binary
                 type: string
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+  /submissionfiles/vector/{uuid}:
+    get:
+      operationId: getSubmissionVectorFile
+      summary: Retrieves a submitted vector image file.
+      description: Users can only view their own submitted files, except for administrators.
+      parameters:
+        - $ref: '#/components/parameters/uuid-Entity'
+        - name: Accept
+          in: header
+          required: false
+          description: |
+            The MIME type for the response. Must allow `image/svg+xml`.
+
+            If omitted, `*/*` (a wildcard allowing all types) is assumed.
+          schema:
+            format: mimetype
+            type: string
+          example: image/svg+xml
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The vector image file, as it was uploaded.
+          headers:
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
+            Content-Type:
+              description: |
+                The MIME type for the response. Will always be `image/svg+xml`.
+              example: image/svg+xml
+              schema:
+                format: mimetype
+                type: string
+          content:
             image/svg+xml:
               schema:
                 format: xml
-                type: string
-            image/webp:
-              schema:
-                format: binary
                 type: string
         '401':
           $ref: '#/components/responses/401'
@@ -1772,5 +1786,3 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
-      security:
-        - Contributor: []
