@@ -609,6 +609,7 @@ components:
             - license
             - sourceFile
             - specificNode
+            - vectorFile
           properties:
             generalNode:
               allOf:
@@ -644,6 +645,7 @@ components:
                     ```
                     data:image/svg+xml,<svg width="1" height="1"></svg>`
                     ```
+                  nullable: true
         attribution:
           type: string
           example: 'Charles Knight'
@@ -1123,7 +1125,8 @@ paths:
         as for [`POST /images/{uuid}`](#postImage).
 
         To upload a new file, the `sourceFile` link should be a URL with the `data:` scheme, as for
-        [`POST /images/{uuid}`](#postImage).
+        [`POST /images/{uuid}`](#postImage). If the new file is a vector file, both `sourceFile` and `vectorFile`
+        must be populated.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -1476,20 +1479,20 @@ paths:
       responses:
         '204':
           $ref: '#/components/responses/204'
-  /resolve/{uri}:
+  /resolve:
     get:
       operationId: resolve
       summary: Resolves an external URI to the closest phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - name: uri
-          in: path
+          in: query
           required: true
           description: The URI of the external resource.
           schema:
             format: uri
             type: string
-          example: http://eol.org/328046
+          example: https://eol.org/pages/328046
       security:
         - apiKeyAuth: []
       responses:
