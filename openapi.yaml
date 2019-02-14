@@ -1044,6 +1044,54 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+  /autocomplete:
+    get:
+      operationId: autocomplete
+      summary: Gets suggestions for full names based on partial text.
+      description: |
+        Never returns more than 30 results. Results with the text toward the beginning are favored.
+
+        The results can be clarified via `/search/nodes`.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - name: query
+          in: query
+          required: true
+          description: The leading text to look up. Must be at least two characters.
+          schema:
+            type: string
+          example: human
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: |
+            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) textual matches.
+          headers:
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                type: object
+                required:
+                  - _links
+                  - matches
+                properties:
+                  _links:
+                    type: object
+                    required:
+                      - self
+                    properties:
+                      self:
+                        $ref: '#/components/schemas/Link'
+                  matches:
+                    type: array
+                    items:
+                      type: string
+                      example: modern humans
+        '400':
+          $ref: '#/components/responses/400'
   /images:
     get:
       operationId: getImages
