@@ -20,6 +20,23 @@ components:
       schema:
         pattern: '^items$'
         type: string
+    Access-Control-Allow-Credentials:
+      description: Specifies that credentials are allowed in requests. Always `true`.
+      example: 'true'
+      schema:
+        pattern: '^true$'
+        type: string
+    Access-Control-Allow-Origin:
+      description: Specifies that requests may be made from any origin. Always `*`.
+      example: '*'
+      schema:
+        pattern: '^\*$'
+        type: string
+    Cache-Control:
+      description: Specifications for caching mechanisms.
+      example: public, max-age=31536000
+      schema:
+        type: string
     Content-Length:
       description: The length of the content, in bytes.
       example: 1024
@@ -34,10 +51,34 @@ components:
         pattern: '^items \d+-\d+/\d+$'
         type: string
     Content-Type:
-      description: The MIME type for the payload, including API version. Always `application/vnd.phylopic.v2+json`.
+      description: The media type for the payload, including API version. Always `application/vnd.phylopic.v2+json`.
       example: application/vnd.phylopic.v2+json
       schema:
         format: mimetype
+        type: string
+    ETag-entity:
+      description: An identifier for this version of the resource. May be used on subsequent calls to avoid unnecessary reloading (`If-None-Match` header).
+      example: '"identifier"'
+      schema:
+        pattern: '^"[^"]+"$'
+        type: string
+    ETag-list:
+      description: An identifier for this version of the list. Should be used on subsequent calls to ensure the same version of the list is being loaded (`If-Match` header).
+      example: '"identifier"'
+      schema:
+        pattern: '^"[^"]+"$'
+        type: string
+    ETag-patch:
+      description: An identifier for this version of the resource. May be used on subsequent calls to avoid unnecessary reloading (`If-None-Match` header). Must be used on `PATCH` calls to ensure the same version of the resource is being updated.
+      example: '"identifier"'
+      schema:
+        pattern: '^"[^"]+"$'
+        type: string
+    ETag-put:
+      description: An identifier for this version of the resource. May be used on subsequent calls to avoid unnecessary reloading (`If-None-Match` header). Must be used on `PUT` calls to ensure the same version of the resource is being updated.
+      example: '"identifier"'
+      schema:
+        pattern: '^"[^"]+"$'
         type: string
     Location:
       description: The URL for the resource.
@@ -49,22 +90,43 @@ components:
       name: Accept
       in: header
       description: |
-        The MIME type for the response, including API version. Must allow `application/vnd.phylopic.v2+json`.
+        The media type for the response, including API version. Must allow `application/vnd.phylopic.v2+json`.
 
         If omitted, `*/*` (a wildcard allowing all types) is assumed, and the response's `Content-Type` header will be `application/vnd.phylopic.v2+json`.
       schema:
         format: mimetype
         type: string
-      example: application/vnd.phylopic.v2+json
     Content-Type:
       name: Content-Type
       in: header
       required: true
-      description: The MIME type for the payload, including API version. Must be `application/vnd.phylopic.v2+json`.
+      description: The media type for the payload, including API version. Must be `application/vnd.phylopic.v2+json`.
       schema:
         format: mimetype
         type: string
-      example: application/vnd.phylopic.v2+json
+    If-Match-GET:
+      name: If-Match
+      in: header
+      description: Identifies which version(s) of the list is/are expected, as given by the `ETag` header on a previous response. If that version is out of date, a `416` response will be returned.
+      schema:
+        pattern: '^(\*|(W\\/)?"([^"]|\\")+"(,\s*(W\/)?"([^"]|\\")+")*)$'
+        type: string
+      example: '"identifier"'
+    If-Match-PUT:
+      name: If-Match
+      in: header
+      required: true
+      description: Identifies which version(s) of the resource is/are being modified, as given by the `ETag` header on a previous response. If that version is out of date, a `412` response will be returned.
+      schema:
+        pattern: '^(\*|(W\\/)?"([^"]|\\")+"(,\s*(W\/)?"([^"]|\\")+")*)$'
+        type: string
+    If-None-Match:
+      name: If-None-Match
+      in: header
+      description: Identifies which version of the resource has already been loaded, as given by the `ETag` header on a previous response. If this matches the current version, a `304` response will be returned.
+      schema:
+        pattern: '^(\*|(W\\/)?"([^"]|\\")+"(,\s*(W\/)?"([^"]|\\")+")*)$'
+        type: string
     Range:
       name: Range
       in: header
@@ -76,7 +138,39 @@ components:
       schema:
         pattern: '^items=\d+-\d+$'
         type: string
-      example: items=0-9
+    contributor:
+      name: contributor
+      in: query
+      required: false
+      description: |
+        Limits results to entries contributed by a certain user.
+
+        The value is the UUID associated with their account.
+      schema:
+        format: uuid
+        type: string
+    created_lt:
+      name: created_lt
+      in: query
+      required: false
+      description: |
+        Limits results to entries created at or before this time.
+
+        The value must be an ISO-formatted date-time, for example, `1970-01-01T00:00:00.000Z`.
+      schema:
+        format: date-time
+        type: string
+    created_gt:
+      name: created_gt
+      in: query
+      required: false
+      description: |
+        Limits results to entries created at or after this time.
+
+        The value must be an ISO-formatted date-time, for example, `1970-01-01T00:00:00.000Z`.
+      schema:
+        format: date-time
+        type: string
     embed-Image:
       name: embed
       in: query
@@ -105,6 +199,77 @@ components:
       schema:
         pattern: '^((contributor|childNodes|parentNode|primaryImage) )*(contributor|childNodes|parentNode|primaryImage)$'
         type: string
+    licensecomponents:
+      name: licensecomponents
+      in: query
+      required: false
+      description: |
+        Limits entries to those with or without certain license components.
+
+        Components are represented as a space-separated list. May include:
+        - `by` (Attribution)
+        - `nc` (Noncommercial)
+        - `sa` (Standalone)
+
+        Any of these may be prepended by `-` to indicate that only images under licenses **without** that component should be returned.
+
+        Examples:
+        - `by`: only include images with licenses that require attribution.
+        - `-by`: exclude all images with licenses that require attribution.
+        - `-by -nc -sa`: only include images in the public domain (having none of the license components).
+      schema:
+        format: '^(\-?(by|nc|sa) )*(\-?(by|nc|sa))$'
+        type: string
+    modified_lt:
+      name: modified_lt
+      in: query
+      required: false
+      description: |
+        Limits results to entries last modified at or before this time.
+
+        The value must be an ISO-formatted date-time, for example, `1970-01-01T00:00:00.000Z`.
+      schema:
+        format: date-time
+        type: string
+      example: '1970-01-01T00:00:00.000Z'
+    modified_gt:
+      name: modified_gt
+      in: query
+      required: false
+      description: |
+        Limits results to entries last modified at or after this time.
+
+        The value must be an ISO-formatted date-time, for example, `1970-01-01T00:00:00.000Z`.
+      schema:
+        format: date-time
+        type: string
+    sort:
+      name: sort
+      in: query
+      required: false
+      description: |
+        A space-separated list of fields to sort by. May include:
+        - `created`
+        - `modified`
+
+        Either of these may be prepended by `-` to indicate descending order. The default value is `-modified`.
+      schema:
+        pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
+        type: string
+    sort-Node:
+      name: sort
+      in: query
+      required: false
+      description: |
+        A space-separated list of fields to sort by. May include:
+        - `created`
+        - `modified`
+        - `names`
+
+        Either of these may be prepended by `-` to indicate descending order. The default value is `names`.
+      schema:
+        pattern: '^(\-?(created|modified|names) )*(\-?(created|modified|names))$'
+        type: string
     uuid-Entity:
       name: uuid
       in: path
@@ -113,13 +278,23 @@ components:
       schema:
         format: uuid
         type: string
-        example: '123e4567-e89b-12d3-a456-426655440000'
   responses:
     '204':
       description: The request completed successfully. No further information is provided.
+      headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
     '302':
       description: The requested resource has been found at another location.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
         Location:
@@ -128,9 +303,24 @@ components:
         application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/EntityReference'
+    '304':
+      description: The resource has not been modified since the last time it was requested.
+      headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        ETag:
+          $ref: '#/components/headers/ETag-entity'
     '307':
       description: The requested resource is available at another location, temporarily.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
         Location:
@@ -152,6 +342,12 @@ components:
     '400':
       description: There is an error in the request.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
@@ -161,6 +357,12 @@ components:
     '401':
       description: The user is not currently authenticated.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
@@ -170,6 +372,12 @@ components:
     '403':
       description: The user does not have permission to perform this action.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
@@ -179,6 +387,12 @@ components:
     '404':
       description: The resource cannot be found.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
@@ -188,6 +402,12 @@ components:
     '406':
       description: The request cannot be accepted because the `Accept` header does not allow an available type of content.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
@@ -200,6 +420,12 @@ components:
 
         (This likely means `PATCH` should have been used instead.)
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
         Location:
@@ -211,6 +437,12 @@ components:
     '410':
       description: The resource has been removed.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
@@ -220,6 +452,12 @@ components:
     '413':
       description: The payload is too large.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
       content:
@@ -229,8 +467,16 @@ components:
     '416':
       description: The requested range is not satisfiable.
       headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
+        ETag:
+          $ref: '#/components/headers/ETag-list'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -241,10 +487,20 @@ components:
       headers:
         Accept-Ranges:
           $ref: '#/components/headers/Accept-Ranges'
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Cache-Control:
+          $ref: '#/components/headers/Cache-Control'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Range:
           $ref: '#/components/headers/Content-Range'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
+        ETag:
+          $ref: '#/components/headers/ETag-list'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -271,7 +527,7 @@ components:
                   self:
                     allOf:
                       - $ref: '#/components/schemas/Link'
-                      - description: Link to this entity.
+                      - description: Link to this list.
               total:
                 description: The total number of items in the set.
                 format: uint
@@ -282,10 +538,20 @@ components:
       headers:
         Accept-Ranges:
           $ref: '#/components/headers/Accept-Ranges'
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Cache-Control:
+          $ref: '#/components/headers/Cache-Control'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
         Content-Range:
           $ref: '#/components/headers/Content-Range'
         Content-Type:
           $ref: '#/components/headers/Content-Type'
+        ETag:
+          $ref: '#/components/headers/ETag-list'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -312,7 +578,7 @@ components:
                   self:
                     allOf:
                       - $ref: '#/components/schemas/Link'
-                      - description: Link to this entity.
+                      - description: Link to this list.
               total:
                 description: The total number of items in the set.
                 format: uint
@@ -954,7 +1220,7 @@ components:
           properties:
             title:
               type: string
-              example: 'Resource Name'
+              example: 'Name'
   securitySchemes:
     bearerAuth:
       description: User signed in to Amazon Cognito.
@@ -973,6 +1239,7 @@ paths:
       summary: API information and links to resources.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-None-Match'
       security:
         - apiKeyAuth: []
       responses:
@@ -980,8 +1247,18 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) resource description for the API.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-entity'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1011,11 +1288,13 @@ paths:
                         $ref: '#/components/schemas/Link'
                   title:
                     type: string
-                    example: PhyloPic API
+                    example: PhyloPic Application Programming Interface
                   version:
                     pattern: '^\d+\.\d+\.\d+(-(alpha|beta|rc)(\.\d+)?)?'
                     type: string
                     example: 2.0.0-alpha
+        '304':
+          $ref: '#/components/responses/304'
         '406':
           $ref: '#/components/responses/406'
   /accounts/{uuid}:
@@ -1024,6 +1303,7 @@ paths:
       summary: Returns a specific user account.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-None-Match'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
         - apiKeyAuth: []
@@ -1032,12 +1312,24 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) user account record.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-entity'
           content:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/Account'
+        '304':
+          $ref: '#/components/responses/304'
         '404':
           $ref: '#/components/responses/404'
         '406':
@@ -1049,9 +1341,7 @@ paths:
       operationId: autocomplete
       summary: Gets suggestions for full names based on partial text.
       description: |
-        Never returns more than 30 results. Results with the text toward the beginning are favored.
-
-        The results can be clarified via `/search/nodes`.
+        Never returns more than 30 results. Results with the text toward the beginning are favored. The results can be clarified via `/search/nodes`.
       parameters:
         - $ref: '#/components/parameters/Accept'
         - name: query
@@ -1068,6 +1358,14 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) textual matches.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
           content:
@@ -1092,27 +1390,61 @@ paths:
                       example: modern humans
         '400':
           $ref: '#/components/responses/400'
-  /images:
+  /cladeimages/{uuid}:
     get:
-      operationId: getImages
-      summary: Returns links to resources for images.
+      operationId: getCladeImages
+      summary: Lists all images associated with a given phylogenetic node or any of its descendants.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-GET'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/contributor'
+        - $ref: '#/components/parameters/created_lt'
+        - $ref: '#/components/parameters/created_gt'
+        - $ref: '#/components/parameters/embed-Image'
+        - $ref: '#/components/parameters/licensecomponents'
+        - $ref: '#/components/parameters/modified_lt'
+        - $ref: '#/components/parameters/modified_gt'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/uuid-Entity'
       security:
         - apiKeyAuth: []
       responses:
-        '200':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) domain resource.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/ImageDomain'
+        '206':
+          $ref: '#/components/responses/list-Image'
+        '400':
+          $ref: '#/components/responses/400'
         '406':
           $ref: '#/components/responses/406'
+        '416':
+          $ref: '#/components/responses/416'
+  /images:
+    get:
+      operationId: getImages
+      summary: Lists all images.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-GET'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/contributor'
+        - $ref: '#/components/parameters/created_lt'
+        - $ref: '#/components/parameters/created_gt'
+        - $ref: '#/components/parameters/embed-Image'
+        - $ref: '#/components/parameters/licensecomponents'
+        - $ref: '#/components/parameters/modified_lt'
+        - $ref: '#/components/parameters/modified_gt'
+        - $ref: '#/components/parameters/sort'
+      security:
+        - apiKeyAuth: []
+      responses:
+        '206':
+          $ref: '#/components/responses/list-Image'
+        '400':
+          $ref: '#/components/responses/400'
+        '406':
+          $ref: '#/components/responses/406'
+        '416':
+          $ref: '#/components/responses/416'
   /images/{uuid}:
     delete:
       operationId: deleteImage
@@ -1274,86 +1606,6 @@ paths:
           $ref: '#/components/responses/409'
         '413':
           $ref: '#/components/responses/413'
-  /imagesets/{uuid}:
-    get:
-      operationId: getImageSet
-      summary: Returns a specific set of images.
-      parameters:
-        - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Range'
-        - $ref: '#/components/parameters/uuid-Entity'
-        - $ref: '#/components/parameters/embed-Image'
-        - name: created_lt
-          in: query
-          required: false
-          description: Limits results to entries created on or before this time.
-          schema:
-            format: date-time
-            type: string
-        - name: created_gt
-          in: query
-          required: false
-          description: Limits results to entries created on or after this time.
-          schema:
-            format: date-time
-            type: string
-        - name: licensecomponents
-          in: query
-          required: false
-          description: |
-            Limits entries to those with or without certain license components.
-
-            Components are represented as a space-separated list. May include:
-            - `by` (Attribution)
-            - `nc` (Noncommercial)
-            - `sa` (Standalone)
-
-            Any of these may be prepended by `-` to indicate that only images under licenses **without** that component should be returned.
-
-            Examples:
-            - `by`: only include images with licenses that require attribution.
-            - `-by`: exclude all images with licenses that require attribution.
-            - `-by -nc -sa`: only include images in the public domain (having none of the license components).
-          schema:
-            format: '^(\-?(by|nc|sa) )*(\-?(by|nc|sa))$'
-            type: string
-        - name: modified_lt
-          in: query
-          required: false
-          description: Limits results to entries modified on or before this time.
-          schema:
-            format: date-time
-            type: string
-        - name: modified_gt
-          in: query
-          required: false
-          description: Limits results to entries modified on or after this time.
-          schema:
-            format: date-time
-            type: string
-        - name: sort
-          in: query
-          required: false
-          description: |
-            A space-separated list of fields to sort by. May include:
-            - `created`
-            - `modified`
-
-            Either of these may be prepended by `-` to indicate descending order. The default value is `-modified`.
-          schema:
-            pattern: '^(\-?(created|modified) )*(\-?(created|modified))$'
-            type: string
-      security:
-        - apiKeyAuth: []
-      responses:
-        '206':
-          $ref: '#/components/responses/list-Image'
-        '400':
-          $ref: '#/components/responses/400'
-        '406':
-          $ref: '#/components/responses/406'
-        '416':
-          $ref: '#/components/responses/416'
   /licenses:
     get:
       operationId: getLicenses
@@ -1380,6 +1632,34 @@ paths:
                   $ref: '#/components/schemas/TitledLink'
         '406':
           $ref: '#/components/responses/406'
+  /nodeimages/{uuid}:
+    get:
+      operationId: getNodeImages
+      summary: Lists all images associated with a given phylogenetic node.
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-GET'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/contributor'
+        - $ref: '#/components/parameters/created_lt'
+        - $ref: '#/components/parameters/created_gt'
+        - $ref: '#/components/parameters/embed-Image'
+        - $ref: '#/components/parameters/licensecomponents'
+        - $ref: '#/components/parameters/modified_lt'
+        - $ref: '#/components/parameters/modified_gt'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/uuid-Entity'
+      security:
+        - apiKeyAuth: []
+      responses:
+        '206':
+          $ref: '#/components/responses/list-Image'
+        '400':
+          $ref: '#/components/responses/400'
+        '406':
+          $ref: '#/components/responses/406'
+        '416':
+          $ref: '#/components/responses/416'
   /nodes:
     get:
       operationId: getNodes
@@ -1735,7 +2015,7 @@ paths:
           in: header
           required: false
           description: |
-            The MIME type for the response. Must allow the type of the submitted file. This may include:
+            The media type for the response. Must allow the type of the submitted file. This may include:
 
             - `image/bmp`
             - `image/gif`
@@ -1757,7 +2037,7 @@ paths:
               $ref: '#/components/headers/Content-Length'
             Content-Type:
               description: |
-                The MIME type for the response. Will be one of `image/bmp`, `image/gif`, `image/jpeg`, or `image/png`.
+                The media type for the response. Will be one of `image/bmp`, `image/gif`, `image/jpeg`, or `image/png`.
               example: image/png
               schema:
                 format: mimetype
@@ -1800,7 +2080,7 @@ paths:
           in: header
           required: false
           description: |
-            The MIME type for the response. Must allow `image/svg+xml`.
+            The media type for the response. Must allow `image/svg+xml`.
 
             If omitted, `*/*` (a wildcard allowing all types) is assumed.
           schema:
@@ -1817,7 +2097,7 @@ paths:
               $ref: '#/components/headers/Content-Length'
             Content-Type:
               description: |
-                The MIME type for the response. Will always be `image/svg+xml`.
+                The media type for the response. Will always be `image/svg+xml`.
               example: image/svg+xml
               schema:
                 format: mimetype
