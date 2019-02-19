@@ -58,8 +58,7 @@ components:
         format: number
         type: string
     Content-Range:
-      description: |
-        The range of embedded items, in the format `items {start}-{end}/{total}`.
+      description: The range of embedded items, in the format `"items {start}-{end}/{total}"`. If the total is unknown, is will be `"*"`. If there are no items, there will be `"*"` instead of `"{start}-{end}"`.
       example: items 0-9/88
       schema:
         pattern: '^items \d+-\d+/\d+$'
