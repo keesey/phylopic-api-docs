@@ -312,6 +312,8 @@ components:
           $ref: '#/components/headers/Access-Control-Allow-Credentials'
         Access-Control-Allow-Origin:
           $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Cache-Control:
+          $ref: '#/components/headers/Cache-Control'
         Content-Length:
           $ref: '#/components/headers/Content-Length'
         Content-Type:
@@ -410,6 +412,8 @@ components:
           $ref: '#/components/headers/Access-Control-Allow-Credentials'
         Access-Control-Allow-Origin:
           $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Cache-Control:
+          $ref: '#/components/headers/Cache-Control'
         Content-Length:
           $ref: '#/components/headers/Content-Length'
         Content-Type:
@@ -460,6 +464,8 @@ components:
           $ref: '#/components/headers/Access-Control-Allow-Credentials'
         Access-Control-Allow-Origin:
           $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Cache-Control:
+          $ref: '#/components/headers/Cache-Control'
         Content-Length:
           $ref: '#/components/headers/Content-Length'
         Content-Type:
