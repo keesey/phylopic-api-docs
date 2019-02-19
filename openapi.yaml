@@ -56,26 +56,28 @@ components:
       schema:
         format: mimetype
         type: string
-    ETag-entity:
+    ETag-GET:
       description: An identifier for this version of the resource. May be used on subsequent calls to avoid unnecessary reloading (`If-None-Match` header).
       example: '"identifier"'
       schema:
         pattern: '^"[^"]+"$'
         type: string
-    ETag-list:
+    ETag-GET-Range:
       description: An identifier for this version of the list. Should be used on subsequent calls to ensure the same version of the list is being loaded (`If-Match` header).
       example: '"identifier"'
       schema:
         pattern: '^"[^"]+"$'
         type: string
-    ETag-patch:
+    ETag-PATCH:
       description: An identifier for this version of the resource. May be used on subsequent calls to avoid unnecessary reloading (`If-None-Match` header). Must be used on `PATCH` calls to ensure the same version of the resource is being updated.
+      required: true
       example: '"identifier"'
       schema:
         pattern: '^"[^"]+"$'
         type: string
-    ETag-put:
+    ETag-PUT:
       description: An identifier for this version of the resource. May be used on subsequent calls to avoid unnecessary reloading (`If-None-Match` header). Must be used on `PUT` calls to ensure the same version of the resource is being updated.
+      required: true
       example: '"identifier"'
       schema:
         pattern: '^"[^"]+"$'
@@ -311,7 +313,7 @@ components:
         Access-Control-Allow-Origin:
           $ref: '#/components/headers/Access-Control-Allow-Origin'
         ETag:
-          $ref: '#/components/headers/ETag-entity'
+          $ref: '#/components/headers/ETag-GET'
     '307':
       description: The requested resource is available at another location, temporarily.
       headers:
@@ -449,6 +451,21 @@ components:
         application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/Errors'
+    '412':
+      description: The entity has been modified and needs to be refreshed before making further modifications.
+      headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
     '413':
       description: The payload is too large.
       headers:
@@ -476,7 +493,7 @@ components:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
         ETag:
-          $ref: '#/components/headers/ETag-list'
+          $ref: '#/components/headers/ETag-GET-Range'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -500,7 +517,7 @@ components:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
         ETag:
-          $ref: '#/components/headers/ETag-list'
+          $ref: '#/components/headers/ETag-GET-Range'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -551,7 +568,7 @@ components:
         Content-Type:
           $ref: '#/components/headers/Content-Type'
         ETag:
-          $ref: '#/components/headers/ETag-list'
+          $ref: '#/components/headers/ETag-GET-Range'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -731,23 +748,6 @@ components:
               nullable: true
             _links:
               $ref: '#/components/schemas/ImageLinks'
-    ImageDomain:
-      allOf:
-        - $ref: '#/components/schemas/Domain'
-        - type: object
-          description: The domain for all images.
-          required:
-            - _links
-          properties:
-            _links:
-              type: object
-              required:
-                - totalSet
-              properties:
-                totalSet:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: Link to the set of all active images.
     ImageLinks:
       type: object
       required:
@@ -1065,28 +1065,6 @@ components:
           properties:
             self:
               $ref: '#/components/schemas/Link'
-    NodeDomain:
-      allOf:
-        - $ref: '#/components/schemas/Domain'
-        - type: object
-          description: The domain for all phylogenetic nodes.
-          required:
-            - _links
-          properties:
-            _links:
-              type: object
-              required:
-                - rootNode
-                - search
-              properties:
-                rootNode:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: Link to the root node (ancestor to all other nodes).
-                search:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: Endpoint for searching for phylogenetic nodes.
     NodeName:
       description: A taxonomic name, associated with a phylogenetic node.
       type: array
@@ -1258,7 +1236,7 @@ paths:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
             ETag:
-              $ref: '#/components/headers/ETag-entity'
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1323,7 +1301,7 @@ paths:
             Content-Type:
               $ref: '#/components/headers/Content-Type'
             ETag:
-              $ref: '#/components/headers/ETag-entity'
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1473,6 +1451,7 @@ paths:
       summary: Returns data for a specific image.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-None-Match'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Image'
       security:
@@ -1482,8 +1461,18 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1496,19 +1485,19 @@ paths:
           $ref: '#/components/responses/410'
     patch:
       operationId: patchImage
-      summary: Updates an existing image.
+      summary: Modifies an existing image.
       description: |
-        The response returns an image record for the updated image.
+        The response returns an image record for the modified image.
 
-        Certain changes (updating the source file or the assigned nodes), require review.
-        These requests will return `202` rather than `200`. If `202`, the response has the same modifications
-        as for [`POST /images/{uuid}`](#postImage).
+        Certain modifications (updating the source file or the assigned nodes) require review. These requests will return `202` rather than `200`. If `202`, the response includes any modifications that do not require review.
 
         To upload a new file, the `sourceFile` link should be a URL with the `data:` scheme, as for
         [`POST /images/{uuid}`](#postImage). If the new file is a vector file, both `sourceFile` and `vectorFile`
         must be populated.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Content-Type'
+        - $ref: '#/components/parameters/If-Match-PUT'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -1523,8 +1512,18 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-PATCH'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1533,8 +1532,18 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1542,6 +1551,10 @@ paths:
         '303':
           description: The file was already uploaded for another image.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
             Location:
               $ref: '#/components/headers/Location'
         '400':
@@ -1556,6 +1569,8 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+        '412':
+          $ref: '#/components/responses/412'
         '413':
           $ref: '#/components/responses/413'
     post:
@@ -1569,6 +1584,7 @@ paths:
         - The other image file links (`https://ogp.me/ns#image`, `resizedFiles`, `twitter:image`) will be `null`.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Content-Type'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -1583,8 +1599,18 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1592,6 +1618,10 @@ paths:
         '303':
           description: The file was already uploaded for another image.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
             Location:
               $ref: '#/components/headers/Location'
         '400':
@@ -1622,8 +1652,18 @@ paths:
         '200':
           description: List of titled links to licenses.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1663,24 +1703,30 @@ paths:
   /nodes:
     get:
       operationId: getNodes
-      summary: Returns links to resources for phylogenetic nodes.
+      summary: Lists all nodes.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-GET'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/contributor'
+        - $ref: '#/components/parameters/created_lt'
+        - $ref: '#/components/parameters/created_gt'
+        - $ref: '#/components/parameters/embed-Node'
+        - $ref: '#/components/parameters/modified_lt'
+        - $ref: '#/components/parameters/modified_gt'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/uuid-Entity'
       security:
         - apiKeyAuth: []
       responses:
-        '200':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) domain resource.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                  $ref: '#/components/schemas/NodeDomain'
+        '206':
+          $ref: '#/components/responses/list-Node'
+        '400':
+          $ref: '#/components/responses/400'
         '406':
           $ref: '#/components/responses/406'
+        '416':
+          $ref: '#/components/responses/416'
   /nodes/{uuid}:
     delete:
       operationId: deleteNode
@@ -1708,6 +1754,7 @@ paths:
       summary: Returns a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-None-Match'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Node'
       security:
@@ -1717,8 +1764,18 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1734,6 +1791,8 @@ paths:
       summary: Updates a specific phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Content-Type'
+        - $ref: '#/components/parameters/If-Match-PUT'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -1748,8 +1807,18 @@ paths:
           description: |
             [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) image record.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1766,11 +1835,14 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+        '412':
+          $ref: '#/components/responses/412'
     post:
       operationId: postNode
       summary: Creates a new phylogenetic node.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Content-Type'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -1784,8 +1856,18 @@ paths:
         '201':
           description: The node has been created.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -1988,6 +2070,8 @@ paths:
         Only available for administrators.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/Content-Type'
+        - $ref: '#/components/parameters/If-Match-PATCH'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
         - bearerAuth: []
@@ -2004,6 +2088,8 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+        '412':
+          $ref: '#/components/responses/412'
   /submissionfiles/raster/{uuid}:
     get:
       operationId: getSubmissionRasterFile
