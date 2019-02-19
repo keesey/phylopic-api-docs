@@ -5,13 +5,27 @@ info:
   contact:
     name: Mike Keesey
     email: keesey+phylopic@gmail.com
+    url: http://tmkeesey.net
   license:
     name: CC0
     url: https://creativecommons.org/share-your-work/public-domain/cc0
   version: 2.0.0-alpha
+tags:
+  - name: general
+    description: General API information and status.
+  - name: accounts
+    description: Methods related to user accounts.
+  - name: nodes
+    description: Methods related to phylogenetic nodes.
+  - name: images
+    description: Methods related to silhouette images.
+  - name: search
+    description: Searches for entities.
+  - name: submission
+    description: Methods related to image submission flow.
 servers:
-- url: https://fflpaoip5k.execute-api.us-west-2.amazonaws.com/prod
-  description: The production API server
+  - url: https://fflpaoip5k.execute-api.us-west-2.amazonaws.com/prod
+    description: The production API server
 components:
   headers:
     Accept-Ranges:
@@ -1215,11 +1229,13 @@ paths:
     get:
       operationId: getRoot
       summary: API information and links to resources.
+      tags:
+        - general
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/If-None-Match'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '200':
           description: |
@@ -1279,12 +1295,14 @@ paths:
     get:
       operationId: getAccount
       summary: Returns a specific user account.
+      tags:
+        - accounts
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/If-None-Match'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '200':
           description: |
@@ -1316,8 +1334,11 @@ paths:
           $ref: '#/components/responses/410'
   /autocomplete:
     get:
-      operationId: autocomplete
+      operationId: getAutocomplete
       summary: Gets suggestions for full names based on partial text.
+      tags:
+        - nodes
+        - search
       description: |
         Never returns more than 30 results. Results with the text toward the beginning are favored. The results can be clarified via `/search/nodes`.
       parameters:
@@ -1330,7 +1351,7 @@ paths:
             type: string
           example: human
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '200':
           description: |
@@ -1368,10 +1389,15 @@ paths:
                       example: modern humans
         '400':
           $ref: '#/components/responses/400'
+        '406':
+          $ref: '#/components/responses/406'
   /cladeimages/{uuid}:
     get:
       operationId: getCladeImages
       summary: Lists all images associated with a given phylogenetic node or any of its descendants.
+      tags:
+        - images
+        - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/If-Match-GET'
@@ -1400,6 +1426,8 @@ paths:
     get:
       operationId: getImages
       summary: Lists all images.
+      tags:
+        - images
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/If-Match-GET'
@@ -1426,6 +1454,8 @@ paths:
   /images/{uuid}:
     delete:
       operationId: deleteImage
+      tags:
+        - images
       summary: Removes a specific image.
       description: Also removes any pending changes.
       parameters:
@@ -1449,13 +1479,15 @@ paths:
     get:
       operationId: getImage
       summary: Returns data for a specific image.
+      tags:
+        - images
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/If-None-Match'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Image'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '200':
           description: |
@@ -1486,6 +1518,9 @@ paths:
     patch:
       operationId: patchImage
       summary: Modifies an existing image.
+      tags:
+        - images
+        - submission
       description: |
         The response returns an image record for the modified image.
 
@@ -1576,6 +1611,9 @@ paths:
     post:
       operationId: postImage
       summary: Uploads a new image (file and data) to be added to the site, pending review.
+      tags:
+        - images
+        - submission
       description: |
         On success, this method returns the image record as it will be if it is approved, with the following exceptions:
         - The `self` link is to a temporary location (see [`GET /submissions/{uuid}`](#getSubmission)).
@@ -1640,6 +1678,8 @@ paths:
     get:
       operationId: getLicenses
       summary: Returns a list of licenses.
+      tags:
+        - images
       description:
         Returns a list of all licenses that may be used for new submissions.
 
@@ -1647,7 +1687,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '200':
           description: List of titled links to licenses.
@@ -1676,6 +1716,9 @@ paths:
     get:
       operationId: getNodeImages
       summary: Lists all images associated with a given phylogenetic node.
+      tags:
+        - images
+        - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/If-Match-GET'
@@ -1704,6 +1747,8 @@ paths:
     get:
       operationId: getNodes
       summary: Lists all nodes.
+      tags:
+        - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/If-Match-GET'
@@ -1717,7 +1762,7 @@ paths:
         - $ref: '#/components/parameters/sort'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '206':
           $ref: '#/components/responses/list-Node'
@@ -1731,6 +1776,8 @@ paths:
     delete:
       operationId: deleteNode
       summary: Removes a specific phylogenetic node.
+      tags:
+        - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/uuid-Entity'
@@ -1752,13 +1799,15 @@ paths:
     get:
       operationId: getNode
       summary: Returns a specific phylogenetic node.
+      tags:
+        - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/If-None-Match'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Node'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '200':
           description: |
@@ -1789,6 +1838,8 @@ paths:
     patch:
       operationId: patchNode
       summary: Updates a specific phylogenetic node.
+      tags:
+        - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
@@ -1840,6 +1891,8 @@ paths:
     post:
       operationId: postNode
       summary: Creates a new phylogenetic node.
+      tags:
+        - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
@@ -1886,6 +1939,8 @@ paths:
     get:
       operationId: ping
       summary: Checks if the API is operational.
+      tags:
+        - general
       responses:
         '204':
           $ref: '#/components/responses/204'
@@ -1893,6 +1948,9 @@ paths:
     get:
       operationId: resolve
       summary: Resolves an external URI to the closest phylogenetic node.
+      tags:
+        - nodes
+        - search
       parameters:
         - $ref: '#/components/parameters/Accept'
         - name: uri
@@ -1904,7 +1962,7 @@ paths:
             type: string
           example: https://eol.org/pages/328046
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '300':
           description: Several possible matches were found.
@@ -1932,6 +1990,9 @@ paths:
     get:
       operationId: searchNodes
       summary: Returns an embedded list of references to nodes whose names match a search string.
+      tags:
+        - nodes
+        - search
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Range'
@@ -1943,7 +2004,7 @@ paths:
             type: string
             example: Homo sapiens
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '206':
           description: |
@@ -1991,6 +2052,8 @@ paths:
     get:
       operationId: getSubmissions
       summary: List all pending submissions.
+      tags:
+        - submission
       description: |
         Users can only see their own submissions, except for administrators.
 
@@ -2016,6 +2079,8 @@ paths:
     delete:
       operationId: deleteSubmission
       summary: Deletes an image submission.
+      tags:
+        - submission
       description: Users can only delete their own submissions, except for administrators.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -2038,6 +2103,8 @@ paths:
     get:
       operationId: getSubmission
       summary: Retrieves an image submission.
+      tags:
+        - submission
       description: Users can only view their own submissions, except for administrators.
       parameters:
         - $ref: '#/components/parameters/Accept'
@@ -2064,10 +2131,10 @@ paths:
           $ref: '#/components/responses/410'
     patch:
       operationId: patchSubmission
-      summary: |
-        Approves a submission and promotes it to the image gallery.
-
-        Only available for administrators.
+      summary: Approves a submission and promotes it to the image gallery.
+      description: Only available for administrators.
+      tags:
+        - submission
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
@@ -2095,6 +2162,8 @@ paths:
       operationId: getSubmissionRasterFile
       summary: Retrieves a submitted raster image file.
       description: Users can only view their own submitted files, except for administrators.
+      tags:
+        - submission
       parameters:
         - $ref: '#/components/parameters/uuid-Entity'
         - name: Accept
@@ -2160,6 +2229,8 @@ paths:
       operationId: getSubmissionVectorFile
       summary: Retrieves a submitted vector image file.
       description: Users can only view their own submitted files, except for administrators.
+      tags:
+        - submission
       parameters:
         - $ref: '#/components/parameters/uuid-Entity'
         - name: Accept
