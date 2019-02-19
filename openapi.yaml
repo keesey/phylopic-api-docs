@@ -997,13 +997,13 @@ components:
               type: object
               required:
                 - childNodes
+                - cladeImages
                 - contributor
-                - descendantImageSet
                 - external
+                - images
                 - parentNode
                 - primaryImage
                 - self
-                - selfImageSet
               properties:
                 childNodes:
                   type: array
@@ -1014,22 +1014,26 @@ components:
                     allOf:
                       - $ref: '#/components/schemas/Link'
                       - readOnly: true
+                cladeImages:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to a list of all images illustrating this node or any descendant node.
+                      readOnly: true
                 contributor:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: A link to the account of the user who submitted this node.
-                      readOnly: true
-                descendantImageSet:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: Link to an image set with all images illustrating all descendant nodes.
-                      nullable: true
                       readOnly: true
                 external:
                   type: array
                   description: Links to the same node under other domains (for example, Encyclopedia of Life).
                   items:
                     $ref: '#/components/schemas/TitledLink'
+                images:
+                  allOf:
+                    - $ref: '#/components/schemas/Link'
+                    - description: A link to a list of all images illustrating this node.
+                      readOnly: true
                 parentNode:
                   allOf:
                     - $ref: '#/components/schemas/Link'
@@ -1039,11 +1043,6 @@ components:
                   allOf:
                     - $ref: '#/components/schemas/Link'
                     - description: Link to the primary image for this node.
-                      nullable: true
-                selfImageSet:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - description: Link to an image set with all images illustrating this nodes.
                       nullable: true
                       readOnly: true
             names:
