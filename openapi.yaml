@@ -128,7 +128,7 @@ components:
         pattern: '^(\*|(W\\/)?"([^"]|\\")+"(,\s*(W\/)?"([^"]|\\")+")*)$'
         type: string
       example: '"identifier"'
-    If-Match-PUT:
+    If-Match-PATCH-PUT:
       name: If-Match
       in: header
       required: true
@@ -1532,7 +1532,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
-        - $ref: '#/components/parameters/If-Match-PUT'
+        - $ref: '#/components/parameters/If-Match-PATCH-PUT'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -1843,7 +1843,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
-        - $ref: '#/components/parameters/If-Match-PUT'
+        - $ref: '#/components/parameters/If-Match-PATCH-PUT'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -2138,7 +2138,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
-        - $ref: '#/components/parameters/If-Match-PATCH'
+        - $ref: '#/components/parameters/If-Match-PATCH-PUT'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
         - bearerAuth: []
