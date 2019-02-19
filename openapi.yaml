@@ -640,21 +640,6 @@ components:
         - $ref: '#/components/schemas/Entity'
         - type: object
           properties:
-            _links:
-              type: object
-              required:
-                - imageSet
-                - nodeSet
-                - self
-              properties:
-                imageSet:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - readOnly: true
-                nodeSet:
-                  allOf:
-                    - $ref: '#/components/schemas/Link'
-                    - readOnly: true
             email:
               description: The user's email address.
               format: email
@@ -672,23 +657,10 @@ components:
               example: 'Carolus'
             role:
               description: The user's role.
-              pattern: '^(contributor|admin)$'
+              pattern: '^(contributor|administrator)$'
               readOnly: true
               type: string
               example: 'contributor'
-    Domain:
-      description: A domain for all entities of a given kind.
-      type: object
-      required:
-        - _links
-      properties:
-        _links:
-          type: object
-          required:
-            - self
-          properties:
-            self:
-              $ref: '#/components/schemas/Link'
     Entity:
       description: Common properties for all entities.
       required:
@@ -767,11 +739,16 @@ components:
           required:
             - _links
             - attribution
+            - sponsor
           type: object
           properties:
             attribution:
               type: string
               example: 'Charles Knight'
+              nullable: true
+            sponsor:
+              type: string
+              example: 'Patron Name'
               nullable: true
             _links:
               $ref: '#/components/schemas/ImageLinks'
@@ -849,10 +826,6 @@ components:
       description: Updates for an image.
       type: object
       properties:
-        attribution:
-          type: string
-          example: 'Charles Knight'
-          nullable: true
         _links:
           type: object
           properties:
@@ -889,6 +862,14 @@ components:
                     ```
 
                     If this is included, then `sourceFile` must be included as well.
+        attribution:
+          type: string
+          example: 'Charles Knight'
+          nullable: true
+        sponsor:
+          type: string
+          example: 'Patron Name'
+          nullable: true
     ImagePost:
       description: Data for creating a new image.
       required:
@@ -942,6 +923,10 @@ components:
         attribution:
           type: string
           example: 'Charles Knight'
+          nullable: true
+        sponsor:
+          type: string
+          example: 'Patron Name'
           nullable: true
     ImageWithEmbedded:
       description: Resource for an image.
