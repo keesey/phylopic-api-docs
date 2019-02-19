@@ -101,6 +101,10 @@ components:
       schema:
         format: url
         type: string
+    Warning-GET-Range:
+      description: Warning message. This will be included if you request a range starting after `0` and do not provide an `If-Match` header. Send back a header that matches the `ETag` header of the response to remove this warning.
+      schema:
+        type: string
   parameters:
     Accept:
       name: Accept
@@ -128,7 +132,7 @@ components:
         pattern: '^(\*|(W\\/)?"([^"]|\\")+"(,\s*(W\/)?"([^"]|\\")+")*)$'
         type: string
       example: '"identifier"'
-    If-Match-PATCH-PUT:
+    If-Match-modify:
       name: If-Match
       in: header
       required: true
@@ -532,6 +536,8 @@ components:
           $ref: '#/components/headers/Content-Type'
         ETag:
           $ref: '#/components/headers/ETag-GET-Range'
+        Warning:
+          $ref: '#/components/headers/Warning-GET-Range'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -583,6 +589,8 @@ components:
           $ref: '#/components/headers/Content-Type'
         ETag:
           $ref: '#/components/headers/ETag-GET-Range'
+        Warning:
+          $ref: '#/components/headers/Warning-GET-Range'
       content:
         application/vnd.phylopic.v2+json:
           schema:
@@ -1056,29 +1064,6 @@ components:
             root:
               description: A flag that, if `true`, indicates that this is a root node and should not have a parent.
               type: boolean
-    NodeChoices:
-      type: object
-      description: A list of matching nodes.
-      required:
-        - _embedded
-        - _links
-      properties:
-        _embedded:
-          type: object
-          required:
-            - choices
-          properties:
-            choices:
-              type: array
-              items:
-                $ref: '#/components/schemas/Node'
-        _links:
-          type: object
-          required:
-            - self
-          properties:
-            self:
-              $ref: '#/components/schemas/Link'
     NodeName:
       description: A taxonomic name, associated with a phylogenetic node.
       type: array
@@ -1460,6 +1445,7 @@ paths:
       description: Also removes any pending changes.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-modify'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
         - bearerAuth: []
@@ -1476,6 +1462,8 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+        '412':
+          $ref: '#/components/responses/412'
     get:
       operationId: getImage
       summary: Returns data for a specific image.
@@ -1532,7 +1520,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
-        - $ref: '#/components/parameters/If-Match-PATCH-PUT'
+        - $ref: '#/components/parameters/If-Match-modify'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -1780,6 +1768,7 @@ paths:
         - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-modify'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
         - bearerAuth: []
@@ -1796,6 +1785,8 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+        '412':
+          $ref: '#/components/responses/412'
     get:
       operationId: getNode
       summary: Returns a specific phylogenetic node.
@@ -1843,7 +1834,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
-        - $ref: '#/components/parameters/If-Match-PATCH-PUT'
+        - $ref: '#/components/parameters/If-Match-modify'
         - $ref: '#/components/parameters/uuid-Entity'
       requestBody:
         required: true
@@ -1964,17 +1955,6 @@ paths:
       security:
         - keyAuth: []
       responses:
-        '300':
-          description: Several possible matches were found.
-          headers:
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            Location:
-              $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/NodeChoices'
         '307':
           description: A corresponding or ancestral node was found.
           headers:
@@ -1995,7 +1975,14 @@ paths:
         - search
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-GET'
         - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/contributor'
+        - $ref: '#/components/parameters/created_lt'
+        - $ref: '#/components/parameters/created_gt'
+        - $ref: '#/components/parameters/embed-Node'
+        - $ref: '#/components/parameters/modified_lt'
+        - $ref: '#/components/parameters/modified_gt'
         - name: query
           in: query
           required: true
@@ -2003,6 +1990,8 @@ paths:
           schema:
             type: string
             example: Homo sapiens
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/uuid-Entity'
       security:
         - keyAuth: []
       responses:
@@ -2012,10 +2001,22 @@ paths:
           headers:
             Accept-Ranges:
               $ref: '#/components/headers/Accept-Ranges'
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
             Content-Range:
               $ref: '#/components/headers/Content-Range'
             Content-Type:
               $ref: '#/components/headers/Content-Type'
+            ETag:
+              $ref: '#/components/headers/ETag-GET-Range'
+            Warning:
+              $ref: '#/components/headers/Warning-GET-Range'
           content:
             application/vnd.phylopic.v2+json:
               schema:
@@ -2060,6 +2061,7 @@ paths:
         Submissions are always listed from first submitted to last submitted.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-GET'
         - $ref: '#/components/parameters/Range'
         - $ref: '#/components/parameters/embed-Image'
       security:
@@ -2084,6 +2086,7 @@ paths:
       description: Users can only delete their own submissions, except for administrators.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-modify'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
         - bearerAuth: []
@@ -2100,6 +2103,8 @@ paths:
           $ref: '#/components/responses/406'
         '410':
           $ref: '#/components/responses/410'
+        '412':
+          $ref: '#/components/responses/412'
     get:
       operationId: getSubmission
       summary: Retrieves an image submission.
@@ -2108,6 +2113,7 @@ paths:
       description: Users can only view their own submissions, except for administrators.
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-None-Match'
         - $ref: '#/components/parameters/uuid-Entity'
         - $ref: '#/components/parameters/embed-Image'
       security:
@@ -2123,6 +2129,8 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/ImageWithEmbedded'
+        '304':
+          $ref: '#/components/responses/304'
         '404':
           $ref: '#/components/responses/404'
         '406':
@@ -2138,7 +2146,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Accept'
         - $ref: '#/components/parameters/Content-Type'
-        - $ref: '#/components/parameters/If-Match-PATCH-PUT'
+        - $ref: '#/components/parameters/If-Match-modify'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
         - bearerAuth: []
@@ -2165,7 +2173,6 @@ paths:
       tags:
         - submission
       parameters:
-        - $ref: '#/components/parameters/uuid-Entity'
         - name: Accept
           in: header
           required: false
@@ -2182,12 +2189,20 @@ paths:
             format: mimetype
             type: string
           example: image/bmp,image/gif,image/jpeg,image/png 
+        - $ref: '#/components/parameters/If-None-Match'
+        - $ref: '#/components/parameters/uuid-Entity'
       security:
         - bearerAuth: []
       responses:
         '200':
           description: The raster image file, as it was uploaded.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
             Content-Length:
               $ref: '#/components/headers/Content-Length'
             Content-Type:
@@ -2197,6 +2212,8 @@ paths:
               schema:
                 format: mimetype
                 type: string
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             image/bmp:
               schema:
@@ -2214,6 +2231,8 @@ paths:
               schema:
                 format: binary
                 type: string
+        '304':
+          $ref: '#/components/responses/304'
         '401':
           $ref: '#/components/responses/401'
         '403':
@@ -2232,7 +2251,6 @@ paths:
       tags:
         - submission
       parameters:
-        - $ref: '#/components/parameters/uuid-Entity'
         - name: Accept
           in: header
           required: false
@@ -2244,12 +2262,20 @@ paths:
             format: mimetype
             type: string
           example: image/svg+xml
+        - $ref: '#/components/parameters/If-None-Match'
+        - $ref: '#/components/parameters/uuid-Entity'
       security:
         - bearerAuth: []
       responses:
         '200':
           description: The vector image file, as it was uploaded.
           headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Cache-Control:
+              $ref: '#/components/headers/Cache-Control'
             Content-Length:
               $ref: '#/components/headers/Content-Length'
             Content-Type:
@@ -2259,11 +2285,15 @@ paths:
               schema:
                 format: mimetype
                 type: string
+            ETag:
+              $ref: '#/components/headers/ETag-GET'
           content:
             image/svg+xml:
               schema:
                 format: xml
                 type: string
+        '304':
+          $ref: '#/components/responses/304'
         '401':
           $ref: '#/components/responses/401'
         '403':
