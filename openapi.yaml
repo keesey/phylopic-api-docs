@@ -1392,8 +1392,12 @@ paths:
           $ref: '#/components/responses/list-Image'
         '400':
           $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
         '416':
           $ref: '#/components/responses/416'
   /images:
@@ -1689,6 +1693,34 @@ paths:
                   $ref: '#/components/schemas/TitledLink'
         '406':
           $ref: '#/components/responses/406'
+  /lineage/{uuid}:
+    get:
+      operationId: getLineage
+      summary: Retrieves the ancestral lineage for a given node.
+      description: The nodes are listed in order from least to most ancestral. That is, the first node is the specified node, the second is its parent node, and the last is the root node.
+      tags:
+        - nodes
+      parameters:
+        - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/If-Match-GET'
+        - $ref: '#/components/parameters/Range'
+        - $ref: '#/components/parameters/embed-Node'
+        - $ref: '#/components/parameters/uuid-Entity'
+      security:
+        - keyAuth: []
+      responses:
+        '206':
+          $ref: '#/components/responses/list-Node'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '406':
+          $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
+        '416':
+          $ref: '#/components/responses/416'
   /nodeimages/{uuid}:
     get:
       operationId: getNodeImages
@@ -1716,8 +1748,12 @@ paths:
           $ref: '#/components/responses/list-Image'
         '400':
           $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
+        '410':
+          $ref: '#/components/responses/410'
         '416':
           $ref: '#/components/responses/416'
   /nodes:
