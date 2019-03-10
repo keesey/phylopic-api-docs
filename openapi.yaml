@@ -1789,6 +1789,12 @@ paths:
     delete:
       operationId: deleteNode
       summary: Removes a specific phylogenetic node.
+      description:
+        This removes a phylogenetic node from the site. Any child nodes are assigned to the nodes' parent.
+
+        Users cannot delete nodes they did not contribute, unless they are administrators.
+
+        Nobody may delete a node which still has images directly assigned to it (via `Image.specificNode` or `Image.generalNode`).
       tags:
         - nodes
       parameters:
@@ -1808,6 +1814,26 @@ paths:
           $ref: '#/components/responses/404'
         '406':
           $ref: '#/components/responses/406'
+        '409':
+          description: |
+            There are still images directly assigned to thise node. These must be deleted first.
+
+            Endpoints for the images are contained in the error messages.
+          headers:
+            Access-Control-Allow-Credentials:
+              $ref: '#/components/headers/Access-Control-Allow-Credentials'
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/Access-Control-Allow-Origin'
+            Content-Length:
+              $ref: '#/components/headers/Content-Length'
+            Content-Type:
+              $ref: '#/components/headers/Content-Type'
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/Errors'
         '410':
           $ref: '#/components/responses/410'
         '412':
