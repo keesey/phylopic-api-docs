@@ -24,7 +24,7 @@ tags:
   - name: submission
     description: Methods related to image submission flow.
 servers:
-  - url: https://fflpaoip5k.execute-api.us-west-2.amazonaws.com/prod
+  - url: https://api.phylopic.org
     description: The production API server
 components:
   headers:
