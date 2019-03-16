@@ -8,9 +8,17 @@
   },
   "description": "Documentation for PhyloPic's Application Programming Interface",
   "devDependencies": {
+    "api-spec-converter": "^2.7.31",
     "bootprint": "^1.0.2",
+    "bootprint-json-schema": "^2.0.0-rc.3",
     "bootprint-openapi": "^1.1.0",
-    "swagger-cli": "^2.1.1"
+    "customize": "^3.0.0",
+    "handlebars": "^4.1.0",
+    "hoek": "^6.1.2",
+    "jquery": "^3.3.1",
+    "s3-deploy": "^1.3.0",
+    "swagger-cli": "^2.1.1",
+    "yarn": "^1.13.0"
   },
   "homepage": "https://github.com/keesey/phylopic-api-docs#readme",
   "keywords": [
@@ -27,7 +35,10 @@
     "url": "git+https://github.com/keesey/phylopic-api-docs.git"
   },
   "scripts": {
-    "build": "rm -rf dist && bootprint openapi ./openapi.yaml ./dist",
+    "build": "yarn test && yarn clean && yarn build-swagger && bootprint openapi ./.swagger.yaml ./dist/api/docs/2.0",
+    "build-swagger": "api-spec-converter --from=openapi_3 --to=swagger_2 --syntax=yaml openapi.yaml > .swagger.yaml",
+    "clean": "rm -rf dist",
+    "deploy": "yarn build && s3-deploy './dist/**' --cwd './dist/' --region us-west-2 --bucket www.phylopic.org",
     "test": "swagger-cli validate ./openapi.yaml"
   },
   "version": "2.0.0-alpha"
