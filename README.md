@@ -1,10 +1,12 @@
 # PhyloPic API Documentation
 
-This project is for documenting the planned Application Programming Interface for the next version of [*PhyloPic*](http://phylopic.org).
+This project is for documenting the planned Application Programming Interface for the next version of [*PhyloPic*](http://phylopic.org). The primary file is [`openapi.yaml`](https://github.com/keesey/phylopic-api-docs/blob/master/openapi.yaml), which is written using the [OpenAPI Specification](https://swagger.io/specification/).
+
+## View online
+
+An HTML version of the documentation is currently being hosted [here](http://www.phylopic.org.s3-website-us-west-2.amazonaws.com/api/docs/2.0/).
 
 ## Getting started
-
-The primary file is [`openapi.yaml`](https://github.com/keesey/phylopic-api-docs/blob/master/openapi.yaml), which is written using the [OpenAPI Specification](https://swagger.io/specification/).
 
 ### Prerequisites
 
