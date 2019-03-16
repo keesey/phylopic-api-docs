@@ -20,7 +20,7 @@ yarn
 
 ## Running the tests
 
-To test the `openapi.yaml` is valid, run:
+To test that `openapi.yaml` is valid, run:
 
 ```sh
 yarn test
