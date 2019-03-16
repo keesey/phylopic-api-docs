@@ -1386,7 +1386,7 @@ paths:
         - $ref: '#/components/parameters/sort'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '206':
           $ref: '#/components/responses/list-Image'
@@ -1419,7 +1419,7 @@ paths:
         - $ref: '#/components/parameters/modified_gt'
         - $ref: '#/components/parameters/sort'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '206':
           $ref: '#/components/responses/list-Image'
@@ -1742,7 +1742,7 @@ paths:
         - $ref: '#/components/parameters/sort'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
-        - apiKeyAuth: []
+        - keyAuth: []
       responses:
         '206':
           $ref: '#/components/responses/list-Image'

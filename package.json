@@ -8,6 +8,8 @@
   },
   "description": "Documentation for PhyloPic's Application Programming Interface",
   "devDependencies": {
+    "bootprint": "^1.0.2",
+    "bootprint-openapi": "^1.1.0",
     "swagger-cli": "^2.1.1"
   },
   "homepage": "https://github.com/keesey/phylopic-api-docs#readme",
@@ -25,6 +27,7 @@
     "url": "git+https://github.com/keesey/phylopic-api-docs.git"
   },
   "scripts": {
+    "build": "rm -rf dist && bootprint openapi ./openapi.yaml ./dist",
     "test": "swagger-cli validate ./openapi.yaml"
   },
   "version": "2.0.0-alpha"
