@@ -8,11 +8,11 @@ The primary file is [`openapi.yaml`](https://github.com/keesey/phylopic-api-docs
 
 ### Prerequisites
 
-To build an HTML version of the documentation, you will require [yarn](https://yarnpkg.com/docs/install).
+To build an HTML version of the documentation, you will require [yarn](https://yarnpkg.com/). Installation instructions are [here](https://yarnpkg.com/docs/install).
 
 ### Installing dependencies
 
-Once installed, go to the project folder and run:
+Once yarn is installed, go to the project folder and run:
 
 ```sh
 yarn
@@ -26,7 +26,7 @@ To test the `openapi.yaml` is valid, run:
 yarn test
 ```
 
-### Generating documentation
+## Generating documentation
 
 To generate documentation as an HTML web page, run:
 
