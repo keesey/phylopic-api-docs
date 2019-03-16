@@ -25,7 +25,7 @@ tags:
     description: Methods related to image submission flow.
 servers:
   - url: https://api.phylopic.org
-    description: The production API server
+    description: The production API
 components:
   headers:
     Accept-Ranges:
