@@ -2019,7 +2019,7 @@ paths:
           $ref: '#/components/responses/406'
   /rootnode:
     get:
-      operationId: getNode
+      operationId: getRootNode
       summary: Returns the root node.
       tags:
         - nodes
