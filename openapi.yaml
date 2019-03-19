@@ -1490,6 +1490,8 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/ImageWithEmbedded'
+        '304':
+          $ref: '#/components/responses/304'
         '404':
           $ref: '#/components/responses/404'
         '406':
@@ -1871,6 +1873,8 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/NodeWithEmbedded'
+        '304':
+          $ref: '#/components/responses/304'
         '404':
           $ref: '#/components/responses/404'
         '406':
@@ -2050,6 +2054,8 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/NodeWithEmbedded'
+        '304':
+          $ref: '#/components/responses/304'
         '404':
           $ref: '#/components/responses/404'
         '406':
