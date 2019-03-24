@@ -24,7 +24,8 @@
   "homepage": "https://github.com/keesey/phylopic-api-docs#readme",
   "keywords": [
     "api",
-    "open",
+    "documentation",
+    "openapi",
     "phylopic",
     "swagger"
   ],
