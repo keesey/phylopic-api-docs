@@ -1490,6 +1490,8 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/ImageWithEmbedded'
+        '304':
+          $ref: '#/components/responses/304'
         '404':
           $ref: '#/components/responses/404'
         '406':
@@ -1871,6 +1873,8 @@ paths:
             application/vnd.phylopic.v2+json:
               schema:
                 $ref: '#/components/schemas/NodeWithEmbedded'
+        '304':
+          $ref: '#/components/responses/304'
         '404':
           $ref: '#/components/responses/404'
         '406':
@@ -2020,36 +2024,20 @@ paths:
   /rootnode:
     get:
       operationId: getRootNode
-      summary: Returns the root phylogenetic node (the ancestor of all others).
+      summary: Retrieves the root phylogenetic node (the ancestor of all others).
+      description: Redirects to the appropriate `/nodes/{uuid}` endpoint.
       tags:
         - nodes
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/If-None-Match'
         - $ref: '#/components/parameters/embed-Node'
       security:
         - keyAuth: []
       responses:
-        '200':
-          description: |
-            [HAL](http://stateless.co/hal_specification.html) [JSON](https://www.json.org/) node record.
-          headers:
-            Access-Control-Allow-Credentials:
-              $ref: '#/components/headers/Access-Control-Allow-Credentials'
-            Access-Control-Allow-Origin:
-              $ref: '#/components/headers/Access-Control-Allow-Origin'
-            Cache-Control:
-              $ref: '#/components/headers/Cache-Control'
-            Content-Length:
-              $ref: '#/components/headers/Content-Length'
-            Content-Type:
-              $ref: '#/components/headers/Content-Type'
-            ETag:
-              $ref: '#/components/headers/ETag-GET'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/NodeWithEmbedded'
+        '303':
+          $ref: '#/components/responses/303'
+        '400':
+          $ref: '#/components/responses/400'
         '406':
           $ref: '#/components/responses/406'
   /search/nodes:
