@@ -2083,7 +2083,6 @@ paths:
             type: string
             example: Homo sapiens
         - $ref: '#/components/parameters/sort'
-        - $ref: '#/components/parameters/uuid-Entity'
       security:
         - keyAuth: []
       responses:
