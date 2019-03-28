@@ -2239,7 +2239,6 @@ paths:
         - submission
       parameters:
         - $ref: '#/components/parameters/Accept'
-        - $ref: '#/components/parameters/Content-Type'
         - $ref: '#/components/parameters/If-Match-modify'
         - $ref: '#/components/parameters/uuid-Entity'
       security:
