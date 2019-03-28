@@ -341,6 +341,23 @@ components:
         application/vnd.phylopic.v2+json:
           schema:
             $ref: '#/components/schemas/EntityReference'
+    '303-file':
+      description: The file was already uploaded for another image.
+      headers:
+        Access-Control-Allow-Credentials:
+          $ref: '#/components/headers/Access-Control-Allow-Credentials'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/Access-Control-Allow-Origin'
+        Content-Length:
+          $ref: '#/components/headers/Content-Length'
+        Content-Type:
+          $ref: '#/components/headers/Content-Type'
+        Location:
+          $ref: '#/components/headers/Location'
+      content:
+        application/vnd.phylopic.v2+json:
+          schema:
+            $ref: '#/components/schemas/EntityReference'
     '304':
       description: The resource has not been modified since the last time it was requested.
       headers:
@@ -1584,18 +1601,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Image'
         '303':
-          description: The file was already uploaded for another image.
-          headers:
-            Access-Control-Allow-Credentials:
-              $ref: '#/components/headers/Access-Control-Allow-Credentials'
-            Access-Control-Allow-Origin:
-              $ref: '#/components/headers/Access-Control-Allow-Origin'
-            Location:
-              $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/EntityReference'
+          $ref: '#/components/responses/303-file'
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -1658,18 +1664,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Image'
         '303':
-          description: The file was already uploaded for another image.
-          headers:
-            Access-Control-Allow-Credentials:
-              $ref: '#/components/headers/Access-Control-Allow-Credentials'
-            Access-Control-Allow-Origin:
-              $ref: '#/components/headers/Access-Control-Allow-Origin'
-            Location:
-              $ref: '#/components/headers/Location'
-          content:
-            application/vnd.phylopic.v2+json:
-              schema:
-                $ref: '#/components/schemas/EntityReference'
+          $ref: '#/components/responses/303-file'
         '400':
           $ref: '#/components/responses/400'
         '401':
