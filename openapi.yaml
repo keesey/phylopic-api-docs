@@ -2016,6 +2016,7 @@ paths:
         - search
       parameters:
         - $ref: '#/components/parameters/Accept'
+        - $ref: '#/components/parameters/embed-Node'
         - name: uri
           in: query
           required: true
