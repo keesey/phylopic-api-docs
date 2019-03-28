@@ -1592,6 +1592,10 @@ paths:
               $ref: '#/components/headers/Access-Control-Allow-Origin'
             Location:
               $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/EntityReference'
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -1662,6 +1666,10 @@ paths:
               $ref: '#/components/headers/Access-Control-Allow-Origin'
             Location:
               $ref: '#/components/headers/Location'
+          content:
+            application/vnd.phylopic.v2+json:
+              schema:
+                $ref: '#/components/schemas/EntityReference'
         '400':
           $ref: '#/components/responses/400'
         '401':
