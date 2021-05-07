@@ -12,7 +12,7 @@
     "bootprint": "^4.0.4",
     "bootprint-json-schema": "^4.0.4",
     "bootprint-openapi": "^4.0.4",
-    "handlebars": "^4.7.6",
+    "handlebars": "^4.7.7",
     "openapi-types": "^7.0.1",
     "s3-deploy": "^1.4.0",
     "swagger-cli": "^4.0.4",
